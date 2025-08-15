@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>项目详情报告生成</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
@@ -50,12 +49,21 @@
 
         #report-container {
             width: 210mm; /* A4 width */
-            min-height: 297mm; /* A4 height */
             background: #fff;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             padding: 1in;
             display: flex; flex-direction: column;
+            font-family: "KaiTi SC", "STKaiti", "KaiTi", serif;
         }
+        
+        .error-container {
+            text-align: center; padding: 40px; background-color: #fff; border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1); max-width: 600px;
+        }
+        .error-container i { font-size: 60px; color: var(--primary-color); margin-bottom: 20px; }
+        .error-container h1 { font-family: 'Poppins', sans-serif; font-size: 2rem; margin-bottom: 10px; }
+        .error-container p { font-size: 1.1rem; color: var(--medium-gray); margin-bottom: 25px; }
+        .error-container code { background-color: #eee; padding: 3px 8px; border-radius: 4px; font-family: monospace; }
 
         .report-header {
             display: flex; justify-content: space-between; align-items: flex-start;
@@ -63,15 +71,15 @@
         }
         .report-header h1 {
             font-family: 'Poppins', sans-serif; font-size: 24pt; color: #000;
-            text-align: center; width: 100%;
+            text-align: center; flex-grow: 1;
         }
-        .report-logo { max-height: 50px; }
+        .report-logo { height: 55px; width: auto; }
 
         .report-body { margin-top: 30px; }
         .detail-card { margin-bottom: 25px; }
         .detail-card h3 { font-size: 14pt; padding-bottom: 8px; border-bottom: 1px solid #ccc; margin-bottom: 15px; }
         .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px 30px; }
-        .detail-item { display: flex; flex-direction: column; font-size: 10pt; }
+        .detail-item { display: flex; flex-direction: column; font-size: 10pt; page-break-inside: avoid; }
         .detail-item .label { color: var(--medium-gray); font-weight: 600; margin-bottom: 5px; }
         .detail-item .value { color: var(--dark-gray); }
         .detail-item .value.description { white-space: pre-wrap; grid-column: 1 / -1; }
@@ -88,25 +96,27 @@
         .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
         
         @page {
-            size: portrait;
+            size: A4 portrait;
             margin: 1in;
-            @bottom-center {
-                content: counter(page, upper-roman);
-                font-size: 10pt;
-            }
-            @bottom-left {
-                content: "文件输出时间: " attr(data-timestamp);
-                font-size: 9pt;
-                color: #666;
-            }
         }
-
         @media print {
             body { background: none; padding: 0; }
             #controls, #loading-overlay { display: none !important; }
             #report-container {
-                width: 100%; min-height: auto; box-shadow: none;
-                padding: 0;
+                width: 100%; min-height: 0; box-shadow: none; padding: 0;
+                color-adjust: exact; -webkit-print-color-adjust: exact;
+            }
+            .print-footer-wrapper {
+                position: fixed; bottom: 0; left: 0; right: 0; height: 1in;
+            }
+            .print-footer {
+                position: absolute; bottom: 30px; left: 30px; right: 30px;
+                display: flex; justify-content: space-between; align-items: flex-end;
+            }
+            .print-timestamp { font-size: 9pt; color: #666; }
+            .print-page-number::after {
+                content: counter(page, upper-roman);
+                font-size: 10pt;
             }
             .detail-card, .session-card { page-break-inside: avoid; }
         }
@@ -155,8 +165,9 @@
                 const projectId = params.get('id');
 
                 if (!projectId) {
-                    ui.reportContainer.innerHTML = '<h1>错误：未提供项目ID</h1><p>请通过正确的链接访问此页面，例如：.../?id=PRJ-XXXX</p>';
+                    ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过正确的链接访问此页面，例如：<br><code>...?id=PRJ-XXXX</code></p></div>`;
                     ui.loadingOverlay.style.display = 'none';
+                    ui.printButton.disabled = true;
                     return;
                 }
 
@@ -191,8 +202,9 @@
 
                 } catch (error) {
                     console.error('Data loading or processing failed:', error);
-                    ui.reportContainer.innerHTML = `<h1>数据加载失败</h1><p style="color: red;">${error.message}</p>`;
+                    ui.reportContainer.innerHTML = `<div class="error-container"><h1>数据加载失败</h1><p style="color: red;">${error.message}</p></div>`;
                     ui.loadingOverlay.style.display = 'none';
+                    ui.printButton.disabled = true;
                 }
             }
 
@@ -238,13 +250,24 @@
             function prepareAndTriggerPrint(project) {
                 const now = new Date();
                 const pad = (num) => String(num).padStart(2, '0');
-                const timestamp = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
-                const filenameTimestamp = `${String(now.getFullYear()).slice(-2)}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                const timestamp = `文件输出时间: ${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
+                const filenameTimestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
                 
-                document.documentElement.style.setProperty('--print-timestamp', `"${timestamp}"`);
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @page {
+                        @bottom-left {
+                            content: "${timestamp}";
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                
                 document.title = `项目详情报告_KSVG_${project.id}_${filenameTimestamp}`;
                 
                 window.print();
+
+                document.head.removeChild(style);
             }
 
             ui.printButton.addEventListener('click', () => {
@@ -260,7 +283,7 @@
         });
     } catch (e) {
         console.error("A critical error occurred on the page:", e);
-        document.getElementById('report-container').innerHTML = `<h1>页面脚本发生严重错误</h1><p style="color: red;">请联系管理员。</p>`;
+        document.getElementById('report-container').innerHTML = `<div class="error-container"><h1>页面脚本发生严重错误</h1><p style="color: red;">请联系管理员。</p></div>`;
         document.getElementById('loading-overlay').style.display = 'none';
     }
     </script>

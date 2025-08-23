@@ -66,16 +66,15 @@
         .error-container code { background-color: #eee; padding: 3px 8px; border-radius: 4px; font-family: monospace; }
 
         .report-header {
-            display: block;
-            padding-bottom: 15px; margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #ddd;
         }
         .report-header h1 {
             font-family: 'Poppins', sans-serif; font-size: 20pt; color: #000;
-            font-weight: 600; text-align: center; margin-top: 15px;
+            font-weight: 600; margin: 0;
         }
         .report-logo { height: 60px; width: auto; }
 
-        .report-body { }
         .detail-card { margin-bottom: 25px; }
         .detail-card h3 { font-size: 14pt; padding-bottom: 8px; border-bottom: 1px solid #ccc; margin-bottom: 15px; }
         .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px 30px; }
@@ -93,9 +92,9 @@
         .details-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
         .details-table th, .details-table td { padding: 8px; text-align: left; border: 1px solid #ddd; }
         .details-table th { background: #f9f9f9; font-weight: 600; }
-        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
+        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         
-        @media (max-width: 830px) { /* 210mm is approx 794px. Add some padding. */
+        @media (max-width: 830px) {
             body { padding: 20px 10px; }
             #report-container {
                 width: 100%;
@@ -113,7 +112,6 @@
             #controls, #loading-overlay { display: none !important; }
             #report-container {
                 width: 100%; max-width: 100%; min-height: 0; box-shadow: none; padding: 0;
-                color-adjust: exact; -webkit-print-color-adjust: exact;
             }
             .print-footer-wrapper {
                 position: fixed; bottom: 0; left: 0; right: 0; height: 1in;
@@ -222,7 +220,7 @@
                 const createDetailItem = (label, value) => value ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
                 const createDescriptionItem = (label, value) => value ? `<div class="detail-item value description"><div class="label">${label}</div>${value}</div>` : '';
                 
-                const header = `<div class="report-header"><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"><h1>项目详情报告</h1></div>`;
+                const header = `<div class="report-header"><h1>${p.name} - 项目详情报告</h1><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
                 
                 const projectDetails = `<div class="detail-card"><h3>项目详情</h3><div class="detail-card-body"><div class="detail-grid">
                     ${createDetailItem('内部编号', p.id)} ${createDetailItem('合作部门', p.department)}
@@ -251,8 +249,10 @@
                             ${s.staff.map(st => `<tr><td>${st.Name}</td><td>${st.position}</td><td>${st.identity}</td><td>${st.note}</td></tr>`).join('')}
                         </tbody></table></div>` : ''}
                     </div></div>`).join('') : '';
+                
+                const footer = `<div class="print-footer-wrapper"><div class="print-footer"><div class="print-timestamp"></div><div class="print-page-number"></div></div></div>`;
 
-                ui.reportContainer.innerHTML = header + '<div class="report-body">' + projectDetails + productRequests + sessions + '</div>';
+                ui.reportContainer.innerHTML = header + '<div class="report-body">' + projectDetails + productRequests + sessions + '</div>' + footer;
             }
 
             function prepareAndTriggerPrint(project) {
@@ -261,27 +261,14 @@
                 const timestamp = `文件输出时间: ${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
                 const filenameTimestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
                 
-                const style = document.createElement('style');
-                style.innerHTML = `
-                    @page {
-                        @bottom-left {
-                            content: "${timestamp}";
-                            font-size: 9pt;
-                            color: #888;
-                        }
-                        @bottom-center {
-                            content: counter(page, upper-roman);
-                            font-size: 10pt;
-                        }
-                    }
-                `;
-                document.head.appendChild(style);
+                const timestampElement = ui.reportContainer.querySelector('.print-timestamp');
+                if (timestampElement) {
+                    timestampElement.textContent = timestamp;
+                }
                 
-                document.title = `项目详情报告_KSVG_${project.id}_${filenameTimestamp}`;
+                document.title = `项目详情报告_${project.id}_${filenameTimestamp}`;
                 
                 window.print();
-
-                document.head.removeChild(style);
             }
 
             ui.printButton.addEventListener('click', () => {

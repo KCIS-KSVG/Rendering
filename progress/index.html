@@ -69,9 +69,13 @@
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #ddd;
         }
-        .report-header h1 {
-            font-family: 'Poppins', sans-serif; font-size: 20pt; color: #000;
+        .header-text h1 {
+            font-family: 'Poppins', sans-serif; font-size: 16pt; color: #000;
             font-weight: 600; margin: 0;
+        }
+        .header-text h2 {
+            font-family: 'Inter', sans-serif; font-size: 14pt; color: var(--medium-gray);
+            font-weight: 600; margin: 5px 0 0 0;
         }
         .report-logo { height: 60px; width: auto; }
 
@@ -106,23 +110,28 @@
         @page {
             size: A4 portrait;
             margin: 1in;
+            counter-reset: page;
         }
         @media print {
             body { background: none; padding: 0; }
             #controls, #loading-overlay { display: none !important; }
             #report-container {
                 width: 100%; max-width: 100%; min-height: 0; box-shadow: none; padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             .print-footer-wrapper {
-                position: fixed; bottom: 0; left: 0; right: 0; height: 1in;
+                position: fixed; bottom: 0; left: 1in; right: 1in; height: 1in;
+                display: flex; align-items: flex-end;
             }
             .print-footer {
-                position: absolute; bottom: 30px; left: 30px; right: 30px;
-                display: flex; justify-content: space-between; align-items: flex-end;
+                width: 100%;
+                display: flex; justify-content: space-between;
+                padding-bottom: 20px;
             }
             .print-timestamp { font-size: 9pt; color: #888; }
             .print-page-number::after {
-                content: counter(page, upper-roman);
+                content: counter(page);
                 font-size: 10pt;
             }
             .detail-card, .session-card { page-break-inside: avoid; }
@@ -193,8 +202,14 @@
                     }
 
                     const projectSessions = sessions.filter(s => s.projectId === currentProject.id).map(s => {
-                        const resolvedEquipment = equiRequests.filter(er => er.sessionId === s.id).map(req => ({ ...req, ...(bdEquipment.find(dev => dev.id === req.id) || {}) }));
-                        const resolvedStaff = staffRequests.filter(sr => sr.sessionId === s.id).map(req => ({ ...req, ...(bdStaff.find(staff => staff.id === req.identity) || {}) }));
+                        const resolvedEquipment = equiRequests.filter(er => er.sessionId === s.id).map(req => {
+                            const details = bdEquipment.find(dev => dev.id === req.equipmentId) || {};
+                            return { ...req, ...details };
+                        });
+                        const resolvedStaff = staffRequests.filter(sr => sr.sessionId === s.id).map(req => {
+                            const details = bdStaff.find(staff => staff.id === req.staffId) || {};
+                            return { ...req, ...details };
+                        });
                         return { ...s, equipment: resolvedEquipment, staff: resolvedStaff };
                     });
                     currentProject.products = prodRequests.filter(pr => pr.projectId === currentProject.id);
@@ -220,7 +235,7 @@
                 const createDetailItem = (label, value) => value ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
                 const createDescriptionItem = (label, value) => value ? `<div class="detail-item value description"><div class="label">${label}</div>${value}</div>` : '';
                 
-                const header = `<div class="report-header"><h1>${p.name} - 项目详情报告</h1><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
+                const header = `<div class="report-header"><div class="header-text"><h1>项目详情报告</h1><h2>${p.name}</h2></div><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
                 
                 const projectDetails = `<div class="detail-card"><h3>项目详情</h3><div class="detail-card-body"><div class="detail-grid">
                     ${createDetailItem('内部编号', p.id)} ${createDetailItem('合作部门', p.department)}
@@ -242,11 +257,11 @@
                             ${createDetailItem('场地', s.site)} ${createDetailItem('日期', `${serialToDate(s.startDate)} ~ ${serialToDate(s.endDate)}`)}
                             ${createDescriptionItem('备注', s.notes)}
                         </div>
-                        ${s.equipment && s.equipment.length > 0 ? `<h5>设备请求</h5><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>设备ID</th><th>名称</th><th>类别</th><th>所有者</th><th>序列号</th><th>备注</th></tr></thead><tbody>
+                        ${s.equipment && s.equipment.length > 0 ? `<h5>设备请求</h5><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>请求ID</th><th>设备名称</th><th>类别</th><th>所有者</th><th>序列号</th><th>备注</th></tr></thead><tbody>
                             ${s.equipment.map(e => `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.category}</td><td>${e.owner}</td><td>${e.serialNumbers}</td><td>${e.notes}</td></tr>`).join('')}
                         </tbody></table></div>` : ''}
                         ${s.staff && s.staff.length > 0 ? `<h5>人员分配</h5><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>姓名</th><th>职位</th><th>学号/ID</th><th>备注</th></tr></thead><tbody>
-                            ${s.staff.map(st => `<tr><td>${st.Name}</td><td>${st.position}</td><td>${st.identity}</td><td>${st.note}</td></tr>`).join('')}
+                            ${s.staff.map(st => `<tr><td>${st.name}</td><td>${st.position}</td><td>${st.id}</td><td>${st.note}</td></tr>`).join('')}
                         </tbody></table></div>` : ''}
                     </div></div>`).join('') : '';
                 

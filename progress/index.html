@@ -30,9 +30,7 @@
             display: flex; width: 100%; max-width: 210mm; background-color: #f0f5ff;
             color: #2f54eb; border: 1px solid #adc6ff; border-radius: 8px;
             padding: 12px 15px; margin-bottom: 20px; justify-content: space-between;
-            align-items: center; font-size: 0.9rem;
-            /* *** 修改点 1: 降低提示框的 z-index *** */
-            z-index: 5; 
+            align-items: center; font-size: 0.9rem; z-index: 5; 
         }
         #info-banner p { margin-right: 15px; }
         #close-banner-btn {
@@ -40,9 +38,7 @@
             color: #2f54eb; cursor: pointer; padding: 0 5px; line-height: 1;
         }
         #controls {
-            position: fixed; top: 20px; right: 20px; display: flex; gap: 15px; 
-            /* *** 修改点 1: 确保按钮的 z-index 更高 *** */
-            z-index: 10;
+            position: fixed; top: 20px; right: 20px; display: flex; gap: 15px; z-index: 10;
         }
         .control-button {
             display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
@@ -105,7 +101,7 @@
         .details-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
         .details-table th, .details-table td { padding: 6px; text-align: left; border: 1px solid #ddd; white-space: nowrap; }
         .details-table th { background: #f9f9f9; font-weight: 600; }
-        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
         
         @media (max-width: 830px) {
             body { padding-top: 20px; }
@@ -113,12 +109,22 @@
             #report-container { width: 100%; padding: 20px; min-height: 0; }
         }
         
-        @page { size: A4 portrait; margin: 0.7in; }
+        /* *** 修改点: 打印设置 *** */
+        @page {
+            /* 强制设置为 A4 竖版 */
+            size: A4 portrait;
+            margin: 0.7in;
+        }
         
         @media print {
             body { background: none; padding: 0; }
             #controls, #loading-overlay, #info-banner { display: none !important; }
-            #report-container { width: 100%; max-width: 100%; min-height: 0; box-shadow: none; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #report-container {
+                width: 100%; max-width: 100%; min-height: 0; box-shadow: none; padding: 0;
+                /* 强烈建议浏览器打印背景图形，但最终取决于用户设置 */
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
             .detail-card, .session-card { page-break-inside: avoid; }
         }
     </style>
@@ -244,22 +250,24 @@
                     ui.printButton.disabled = true;
                 }
             }
-
-            // *** 修改点 2: 更新日期格式化函数 ***
-            function formatDateString(dateStr) {
+            
+            function formatDateString(dateStr, includeTime = false) {
                 if (!dateStr) return 'N/A';
-                // 尝试匹配包含时间的格式
-                let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日\s*(\d{1,2}):(\d{2})/);
-                if (match) {
-                    const [, year, month, day, hour, minute] = match;
-                    return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日 ${hour.padStart(2, '0')}时${minute}分`;
+                
+                if (includeTime) {
+                    let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日\s*(\d{1,2}):(\d{2})/);
+                    if (match) {
+                        const [, year, month, day, hour, minute] = match;
+                        return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日 ${hour.padStart(2, '0')}时${minute}分`;
+                    }
                 }
-                //  fallback 到只匹配日期的格式
-                match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
+                
+                let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
                 if (match) {
                     const [, year, month, day] = match;
                     return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日`;
                 }
+                
                 return dateStr;
             }
 
@@ -298,11 +306,10 @@
                     ${p.products.map(pr => `<tr><td>${pr['产品编码']}</td><td>${pr['分类']}</td><td style="white-space:normal;">${pr['需求描述']}</td><td>${pr['负责人']}</td><td><span class="status-badge status-${pr['状态']}">${pr['状态']}</span></td><td>${pr['备注']}</td></tr>`).join('')}
                     </tbody></table></div></div></div>` : '';
                 
-                // *** 修改点 2: 更新场次日期显示逻辑 ***
                 const sessions = p.sessions && p.sessions.length > 0 ? `<div class="detail-card"><h3>归属场次</h3>
                     ${p.sessions.map(s => {
-                        const startDate = formatDateString(s['场次开始时间']);
-                        const endDate = formatDateString(s['场次结束时间']);
+                        const startDate = formatDateString(s['场次开始时间'], true);
+                        const endDate = formatDateString(s['场次结束时间'], true);
                         const dateHTML = `起始：${startDate}<br>结束：${endDate}`;
 
                         return `<div class="session-card">
@@ -355,7 +362,9 @@
                     timestampElement.textContent = timestamp; 
                 }
 
+                // *** 修改点: 确保在调用 print() 之前设置 document.title ***
                 document.title = `项目详情报告_${project['项目编码']}_${filenameTimestamp}`;
+                
                 window.print();
             }
 

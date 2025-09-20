@@ -1,134 +1,400 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KSVG｜文件输出中心</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap"
+        rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="icon" href="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-logo.png" type="image/png">
     <style>
         :root {
-            --primary-color: #920783; --secondary-color: #007bff; --dark-gray: #1d1d1f;
-            --medium-gray: #424245; --light-gray: #f5f5f7; --text-color: #1d1d1f;
-            --status-ongoing-bg: #e6f7ff; --status-ongoing-text: #006d9c;
-            --status-completed-bg: #f6ffed; --status-completed-text: #389e0d;
-            --status-archived-bg: #fafafa; --status-archived-text: #8c8c8c;
-            --status-planned-bg: #f0f5ff; --status-planned-text: #2f54eb;
-            --status-cancelled-bg: #fff1f0; --status-cancelled-text: #cf1322;
+            --primary-color: #920783;
+            --secondary-color: #007bff;
+            --dark-gray: #1d1d1f;
+            --medium-gray: #424245;
+            --light-gray: #f5f5f7;
+            --text-color: #1d1d1f;
+            --status-ongoing-bg: #e6f7ff;
+            --status-ongoing-text: #006d9c;
+            --status-completed-bg: #f6ffed;
+            --status-completed-text: #389e0d;
+            --status-archived-bg: #fafafa;
+            --status-archived-text: #8c8c8c;
+            --status-planned-bg: #f0f5ff;
+            --status-planned-text: #2f54eb;
+            --status-cancelled-bg: #fff1f0;
+            --status-cancelled-text: #cf1322;
         }
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Inter', sans-serif; background-color: var(--light-gray); color: var(--text-color);
-            line-height: 1.6; display: flex; flex-direction: column; align-items: center; padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
             padding-top: 80px;
         }
+
         #info-banner {
-            display: flex; width: 100%; max-width: 210mm; background-color: #f0f5ff;
-            color: #2f54eb; border: 1px solid #adc6ff; border-radius: 8px;
-            padding: 12px 15px; margin-bottom: 20px; justify-content: space-between;
-            align-items: center; font-size: 0.9rem; z-index: 5; 
+            display: flex;
+            width: 100%;
+            max-width: 210mm;
+            background-color: #f0f5ff;
+            color: #2f54eb;
+            border: 1px solid #adc6ff;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            z-index: 5;
         }
-        #info-banner p { margin-right: 15px; }
+
+        #info-banner p {
+            margin-right: 15px;
+        }
+
         #close-banner-btn {
-            background: none; border: none; font-size: 24px; font-weight: bold;
-            color: #2f54eb; cursor: pointer; padding: 0 5px; line-height: 1;
+            background: none;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2f54eb;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
         }
+
         #controls {
-            position: fixed; top: 20px; right: 20px; display: flex; gap: 15px; z-index: 10;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 10;
         }
+
         .control-button {
-            display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
-            background-color: #fff; border: 1px solid #ddd; border-radius: 8px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
         }
-        .control-button:hover { background-color: #f0f0f0; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+
+        .control-button:hover {
+            background-color: #f0f0f0;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
         #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px);
-            z-index: 100; display: flex; justify-content: center; align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             transition: opacity 0.3s;
         }
+
         .loader {
-            border: 7px solid #f3f3f3; border-top: 7px solid var(--primary-color);
-            border-radius: 50%; width: 70px; height: 70px; animation: spin 1s linear infinite;
+            border: 7px solid #f3f3f3;
+            border-top: 7px solid var(--primary-color);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            animation: spin 1s linear infinite;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         #report-container {
-            width: 210mm; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            padding: 0.7in; display: flex; flex-direction: column;
+            width: 210mm;
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 0.7in;
+            display: flex;
+            flex-direction: column;
         }
+
         .error-container {
-            text-align: center; padding: 40px; background-color: #fff; border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1); max-width: 600px;
+            text-align: center;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
         }
-        .error-container i { font-size: 60px; color: var(--primary-color); margin-bottom: 20px; }
-        .error-container h1 { font-family: 'Poppins', sans-serif; font-size: 2rem; margin-bottom: 10px; }
-        .error-container p { font-size: 1.1rem; color: var(--medium-gray); margin-bottom: 25px; }
-        .error-container code { background-color: #eee; padding: 3px 8px; border-radius: 4px; font-family: monospace; }
+
+        .error-container i {
+            font-size: 60px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .error-container h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .error-container p {
+            font-size: 1.1rem;
+            color: var(--medium-gray);
+            margin-bottom: 25px;
+        }
+
+        .error-container code {
+            background-color: #eee;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
         .report-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
         }
-        .header-text h1 { font-family: 'Poppins', sans-serif; font-size: 16pt; color: #000; font-weight: 600; margin: 0; }
-        .header-text h2 { font-family: 'Inter', sans-serif; font-size: 14pt; color: var(--medium-gray); font-weight: 600; margin: 5px 0 0 0; }
-        .report-logo { height: 60px; width: auto; }
-        .detail-card { margin-bottom: 25px; }
-        .detail-card h3 { font-size: 14pt; padding-bottom: 8px; border-bottom: 1px solid #ccc; margin-bottom: 15px; }
-        .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px 30px; }
-        .detail-item { display: flex; flex-direction: column; font-size: 10pt; page-break-inside: avoid; }
-        .detail-item .label { color: var(--medium-gray); font-weight: 600; margin-bottom: 5px; }
-        .detail-item .value { color: var(--dark-gray); word-break: break-all; }
-        .detail-item .value.description { white-space: pre-wrap; grid-column: 1 / -1; }
+
+        .header-text h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 16pt;
+            color: #000;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-text h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 14pt;
+            color: var(--medium-gray);
+            font-weight: 600;
+            margin: 5px 0 0 0;
+        }
+
+        .report-logo {
+            height: 60px;
+            width: auto;
+        }
+
+        .detail-card {
+            margin-bottom: 25px;
+        }
+
+        .detail-card h3 {
+            font-size: 14pt;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px 30px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            font-size: 10pt;
+            page-break-inside: avoid;
+        }
+
+        .detail-item .label {
+            color: var(--medium-gray);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .detail-item .value {
+            color: var(--dark-gray);
+            word-break: break-all;
+        }
+
+        .detail-item .value.description {
+            white-space: pre-wrap;
+            grid-column: 1 / -1;
+        }
+
         .section-divider {
-            border: none; border-top: 1px solid #eee; margin: 25px 0;
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 25px 0;
         }
+
         .session-card {
-            border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
             overflow: hidden;
         }
-        .session-card:last-child { margin-bottom: 0; }
-        .session-header { background: #f0f0f0; padding: 10px 15px; border-bottom: 1px solid #ddd; }
-        .session-header h4 { font-size: 12pt; margin: 0; display: flex; justify-content: space-between; align-items: center; }
-        .session-body { padding: 15px; }
-        .session-body h5 { font-size: 11pt; margin-top: 15px; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; }
-        .session-body h5:first-child { margin-top: 0; }
-        .details-table-wrapper { overflow-x: auto; }
-        .details-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-        .details-table th, .details-table td { padding: 6px; text-align: left; border: 1px solid #ddd; white-space: nowrap; }
-        .details-table th { background: #f9f9f9; font-weight: 600; }
-        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
-        
-        @media (max-width: 830px) {
-            body { padding-top: 20px; }
-            #controls { position: static; width: 100%; max-width: 210mm; justify-content: flex-end; margin-bottom: 20px; }
-            #report-container { width: 100%; padding: 20px; min-height: 0; }
+
+        .session-card:last-child {
+            margin-bottom: 0;
         }
-        
-        /* *** 修改点: 打印设置 *** */
+
+        .session-header {
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .session-header h4 {
+            font-size: 12pt;
+            margin: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-body {
+            padding: 15px;
+        }
+
+        .session-body h5 {
+            font-size: 11pt;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .session-body h5:first-child {
+            margin-top: 0;
+        }
+
+        .details-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+        }
+
+        .details-table th,
+        .details-table td {
+            padding: 6px;
+            text-align: left;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+        }
+
+        .details-table th {
+            background: #f9f9f9;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 830px) {
+            body {
+                padding-top: 20px;
+            }
+
+            #controls {
+                position: static;
+                width: 100%;
+                max-width: 210mm;
+                justify-content: flex-end;
+                margin-bottom: 20px;
+            }
+
+            #report-container {
+                width: 100%;
+                padding: 20px;
+                min-height: 0;
+            }
+        }
+
         @page {
-            /* 强制设置为 A4 竖版 */
             size: A4 portrait;
             margin: 0.7in;
         }
-        
+
         @media print {
-            body { background: none; padding: 0; }
-            #controls, #loading-overlay, #info-banner { display: none !important; }
+            body {
+                background: none;
+                padding: 0;
+            }
+
+            #controls,
+            #loading-overlay,
+            #info-banner {
+                display: none !important;
+            }
+
             #report-container {
-                width: 100%; max-width: 100%; min-height: 0; box-shadow: none; padding: 0;
-                /* 强烈建议浏览器打印背景图形，但最终取决于用户设置 */
+                width: 100%;
+                max-width: 100%;
+                min-height: 0;
+                box-shadow: none;
+                padding: 0;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            .detail-card, .session-card { page-break-inside: avoid; }
+
+            .detail-card,
+            .session-card {
+                page-break-inside: avoid;
+            }
         }
     </style>
 </head>
+
 <body>
     <div id="info-banner">
         <p><strong>服务提示：</strong>使用不同的浏览器使用该服务可能导致部分输出效果不一致，建议使用 Google Chrome进行渲染。当前因技术问题，无法实现页码标记，敬请谅解。</p>
@@ -145,142 +411,151 @@
     <div id="report-container"></div>
 
     <script>
-    try {
-        document.addEventListener("DOMContentLoaded", function () {
-            const BASE_URL = 'https://raw.githubusercontent.com/KCIS-KSVG/Data/main/progress/';
-            const URLS = {
-                projects: `${BASE_URL}01.csv`, sessions: `${BASE_URL}02.csv`,
-                setups: `${BASE_URL}03.csv`, products: `${BASE_URL}04.csv`,
-                staff: `${BASE_URL}05.csv`, equipment: `${BASE_URL}06.csv`
-            };
-            const ui = {
-                loadingOverlay: document.getElementById('loading-overlay'),
-                reportContainer: document.getElementById('report-container'),
-                printButton: document.getElementById('print-button'),
-                backButton: document.getElementById('back-button'),
-                infoBanner: document.getElementById('info-banner'),
-                closeBannerBtn: document.getElementById('close-banner-btn')
-            };
-            let currentProject = null;
-            let projectIdFromUrl = '';
+        try {
+            document.addEventListener("DOMContentLoaded", function () {
+                const BASE_URL = 'https://raw.githubusercontent.com/KCIS-KSVG/Data/main/progress/';
+                const URLS = {
+                    projects: `${BASE_URL}01.csv`, sessions: `${BASE_URL}02.csv`,
+                    setups: `${BASE_URL}03.csv`, products: `${BASE_URL}04.csv`,
+                    staff: `${BASE_URL}05.csv`, equipment: `${BASE_URL}06.csv`
+                };
+                const ui = {
+                    loadingOverlay: document.getElementById('loading-overlay'),
+                    reportContainer: document.getElementById('report-container'),
+                    printButton: document.getElementById('print-button'),
+                    backButton: document.getElementById('back-button'),
+                    infoBanner: document.getElementById('info-banner'),
+                    closeBannerBtn: document.getElementById('close-banner-btn')
+                };
+                let currentProject = null;
+                let projectIdFromUrl = '';
 
-            function parseCSV(text) {
-                if (!text) return [];
-                const lines = text.trim().replace(/^\uFEFF/, "").split(/\r?\n/);
-                if (lines.length < 2) return [];
-                const headers = lines[0].split(',').map(h => h.trim());
-                return lines.slice(1).map(line => {
-                    const values = line.split(',');
-                    return headers.reduce((obj, header, index) => {
-                        obj[header] = (values[index] || '').trim();
-                        return obj;
-                    }, {});
-                });
-            }
+                // *** 核心修改: 更新CSV解析函数 ***
+                function parseCSV(text) {
+                    if (!text) return [];
+                    const lines = text.trim().replace(/^\uFEFF/, "").split(/\r?\n/);
+                    if (lines.length < 2) return [];
+                    const headers = lines[0].split(',').map(h => h.trim());
 
-            async function fetchCSV(url) {
-                const response = await fetch(`${url}?v=${new Date().getTime()}`);
-                if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
-                return await response.text();
-            }
-
-            async function loadAndRender() {
-                const params = new URLSearchParams(window.location.search);
-                projectIdFromUrl = params.get('id'); 
-                
-                let projectIdToSearch = projectIdFromUrl;
-                if (projectIdToSearch) {
-                    projectIdToSearch = projectIdToSearch.replace('PRJ-', '');
-                }
-
-                if (!projectIdToSearch) {
-                    ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过正确的链接访问此页面，例如：<br><code>...?id=2601</code></p></div>`;
-                    ui.loadingOverlay.style.display = 'none';
-                    ui.printButton.disabled = true;
-                    return;
-                }
-
-                try {
-                    const results = await Promise.allSettled(Object.values(URLS).map(fetchCSV));
-                    const [projects, sessions, setups, products, staff, equipment] = results.map(res => res.status === 'fulfilled' ? parseCSV(res.value) : []);
-                    
-                    if (!projects || projects.length === 0) throw new Error("关键文件 '01.csv' (项目) 加载失败或为空。");
-
-                    currentProject = projects.find(p => p['项目编码'] === projectIdToSearch);
-                    
-                    if (!currentProject) {
-                        throw new Error(`项目ID "${projectIdFromUrl}" 未找到。`);
-                    }
-                    
-                    currentProject.products = products.filter(p => p['项目编码（自动）'] === currentProject['项目编码']);
-                    
-                    const projectSessions = sessions.filter(s => s['项目编码（自动）'] === currentProject['项目编码']).map(session => {
-                        const sessionSetups = setups.filter(setup => setup['场次归属（关联）'] === session['场次名称']);
-                        const equipmentMap = new Map();
-                        const staffMap = new Map();
-
-                        sessionSetups.forEach(setup => {
-                            if (setup['设备配置']) {
-                                const equipDetails = equipment.find(e => e['型号'] === setup['设备配置']);
-                                if (equipDetails && !equipmentMap.has(equipDetails['设备内部编码'])) {
-                                    equipmentMap.set(equipDetails['设备内部编码'], {...equipDetails, '备注': setup['备注']});
-                                }
+                    const splitCsvLine = (line) => {
+                        const result = [];
+                        let current = '';
+                        let inQuotes = false;
+                        for (const char of line) {
+                            if (char === '"') {
+                                inQuotes = !inQuotes;
+                            } else if (char === ',' && !inQuotes) {
+                                result.push(current);
+                                current = '';
+                            } else {
+                                current += char;
                             }
-                            if (setup['人员配置']) {
-                                const staffDetails = staff.find(s => s['NAME'] === setup['人员配置']);
-                                if (staffDetails && !staffMap.has(staffDetails['ID'])) {
-                                    staffMap.set(staffDetails['ID'], {...staffDetails, '备注': setup['备注']});
-                                }
-                            }
-                        });
-                        
-                        return { ...session, equipment: Array.from(equipmentMap.values()), staff: Array.from(staffMap.values()) };
+                        }
+                        result.push(current);
+                        return result;
+                    };
+
+                    return lines.slice(1).map(line => {
+                        const values = splitCsvLine(line);
+                        return headers.reduce((obj, header, index) => {
+                            obj[header] = (values[index] || '').trim();
+                            return obj;
+                        }, {});
                     });
-                    
-                    currentProject.sessions = projectSessions;
-
-                    renderReport(currentProject);
-                    ui.loadingOverlay.style.opacity = '0';
-                    setTimeout(() => { ui.loadingOverlay.style.display = 'none'; }, 300);
-
-                } catch (error) {
-                    console.error('Data loading or processing failed:', error);
-                    ui.reportContainer.innerHTML = `<div class="error-container"><h1>数据加载失败</h1><p style="color: red;">${error.message}</p></div>`;
-                    ui.loadingOverlay.style.display = 'none';
-                    ui.printButton.disabled = true;
                 }
-            }
-            
-            function formatDateString(dateStr, includeTime = false) {
-                if (!dateStr) return 'N/A';
-                
-                if (includeTime) {
-                    let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日\s*(\d{1,2}):(\d{2})/);
-                    if (match) {
-                        const [, year, month, day, hour, minute] = match;
-                        return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日 ${hour.padStart(2, '0')}时${minute}分`;
+
+                async function fetchCSV(url) {
+                    const response = await fetch(`${url}?v=${new Date().getTime()}`);
+                    if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+                    return await response.text();
+                }
+
+                // *** 核心修改: 更新数据加载和关联逻辑 ***
+                async function loadAndRender() {
+                    const params = new URLSearchParams(window.location.search);
+                    projectIdFromUrl = params.get('id');
+
+                    let projectIdToSearch = projectIdFromUrl;
+                    if (projectIdToSearch) {
+                        projectIdToSearch = projectIdToSearch.replace('PRJ-', '');
+                    }
+
+                    if (!projectIdToSearch) {
+                        ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过正确的链接访问此页面，例如：<br><code>...?id=2601</code></p></div>`;
+                        ui.loadingOverlay.style.display = 'none';
+                        ui.printButton.disabled = true;
+                        return;
+                    }
+
+                    try {
+                        const results = await Promise.allSettled(Object.values(URLS).map(fetchCSV));
+                        const [projects, sessions, setups, products, staff, equipment] = results.map(res => res.status === 'fulfilled' ? parseCSV(res.value) : []);
+
+                        if (!projects || projects.length === 0) throw new Error("关键文件 '01.csv' (项目) 加载失败或为空。");
+
+                        currentProject = projects.find(p => p['项目编码'] === projectIdToSearch);
+
+                        if (!currentProject) {
+                            throw new Error(`项目ID "${projectIdFromUrl}" 未找到。`);
+                        }
+
+                        currentProject.products = products.filter(p => p['项目编码（自动）'] === currentProject['项目编码']);
+
+                        const projectSessions = sessions.filter(s => s['项目编码（自动）'] === currentProject['项目编码']).map(session => {
+                            const sessionSetups = setups.filter(setup => setup['场次归属（关联）'] === session['场次名称'])
+                                .map(setup => {
+                                    const staffDetails = staff.find(s => s['NAME'] === setup['人员配置']);
+                                    const equipDetails = equipment.find(e => e['型号'] === setup['设备配置']);
+                                    return { ...setup, staff: staffDetails, equipment: equipDetails };
+                                });
+                            return { ...session, setups: sessionSetups };
+                        });
+
+                        currentProject.sessions = projectSessions;
+
+                        renderReport(currentProject);
+                        ui.loadingOverlay.style.opacity = '0';
+                        setTimeout(() => { ui.loadingOverlay.style.display = 'none'; }, 300);
+
+                    } catch (error) {
+                        console.error('Data loading or processing failed:', error);
+                        ui.reportContainer.innerHTML = `<div class="error-container"><h1>数据加载失败</h1><p style="color: red;">${error.message}</p></div>`;
+                        ui.loadingOverlay.style.display = 'none';
+                        ui.printButton.disabled = true;
                     }
                 }
-                
-                let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
-                if (match) {
-                    const [, year, month, day] = match;
-                    return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日`;
+
+                function formatDateString(dateStr, includeTime = false) {
+                    if (!dateStr || dateStr.toLowerCase() === 'n/a') return 'N/A';
+
+                    if (includeTime) {
+                        let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日\s*(\d{1,2}):(\d{2})/);
+                        if (match) {
+                            const [, year, month, day, hour, minute] = match;
+                            return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日 ${hour.padStart(2, '0')}时${minute}分`;
+                        }
+                    }
+
+                    let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
+                    if (match) {
+                        const [, year, month, day] = match;
+                        return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日`;
+                    }
+
+                    return dateStr;
                 }
-                
-                return dateStr;
-            }
 
-            function renderReport(p) {
-                const createDetailItem = (label, value) => value || value === 0 ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
-                const createDescriptionItem = (label, value) => value ? `<div class="detail-item value description"><div class="label">${label}</div>${value}</div>` : '';
-                
-                const driveLink = p['云端硬盘文稿库'];
-                const driveLinkHTML = driveLink ? `<a href="${driveLink}" target="_blank">点此查看</a>` : '无';
+                // *** 核心修改: 更新渲染逻辑以匹配 'progress' 页面 ***
+                function renderReport(p) {
+                    const createDetailItem = (label, value) => value || value === 0 ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
+                    const createDescriptionItem = (label, value) => value ? `<div class="detail-item value description"><div class="label">${label}</div>${value}</div>` : '';
 
-                const header = `<div class="report-header"><div class="header-text"><h1>项目详情报告</h1><h2>${p['项目注册名称']}</h2></div><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
-                
-                const projectDetails = `<div class="detail-card">
+                    const driveLink = p['云端硬盘文稿库'];
+                    const driveLinkHTML = driveLink ? `<a href="${driveLink}" target="_blank">点此查看</a>` : '无';
+
+                    const header = `<div class="report-header"><div class="header-text"><h1>项目详情报告</h1><h2>${p['项目注册名称']}</h2></div><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
+
+                    const projectDetails = `<div class="detail-card">
                     <h3>项目详情</h3>
                     <div class="detail-grid">
                         ${createDetailItem('内部编号', p['项目编码'])}
@@ -301,16 +576,31 @@
                     ${createDescriptionItem('项目备注', p['备注'])}
                 </div>`;
 
-                const productRequests = p.products && p.products.length > 0 ? `<div class="detail-card"><h3>产品请求</h3><div class="detail-card-body" style="padding:0;">
+                    const productRequests = p.products && p.products.length > 0 ? `<div class="detail-card"><h3>产品请求</h3><div class="detail-card-body" style="padding:0;">
                     <div class="details-table-wrapper"><table class="details-table"><thead><tr><th>编号</th><th>类别</th><th>名称/描述</th><th>负责人</th><th>状态</th><th>备注</th></tr></thead><tbody>
                     ${p.products.map(pr => `<tr><td>${pr['产品编码']}</td><td>${pr['分类']}</td><td style="white-space:normal;">${pr['需求描述']}</td><td>${pr['负责人']}</td><td><span class="status-badge status-${pr['状态']}">${pr['状态']}</span></td><td>${pr['备注']}</td></tr>`).join('')}
                     </tbody></table></div></div></div>` : '';
-                
-                const sessions = p.sessions && p.sessions.length > 0 ? `<div class="detail-card"><h3>归属场次</h3>
+
+                    const sessions = p.sessions && p.sessions.length > 0 ? `<div class="detail-card"><h3>归属场次</h3>
                     ${p.sessions.map(s => {
                         const startDate = formatDateString(s['场次开始时间'], true);
                         const endDate = formatDateString(s['场次结束时间'], true);
                         const dateHTML = `起始：${startDate}<br>结束：${endDate}`;
+
+                        const setupsHTML = `<h5>机位编组</h5>` + (s.setups && s.setups.length > 0
+                            ? `<div class="details-table-wrapper"><table class="details-table">
+                                <thead><tr><th>机位</th><th>描述</th><th>负责人</th><th style="width: 40%;">设备</th><th>备注</th></tr></thead>
+                                <tbody>
+                                    ${s.setups.map(setup => `<tr>
+                                        <td>${setup['机位序号']}</td>
+                                        <td>${setup['机位描述']}</td>
+                                        <td>${setup.staff?.['NAME'] || 'N/A'}</td>
+                                        <td style="white-space:normal;">${setup.equipment?.['型号'] || 'N/A'}</td>
+                                        <td style="white-space:normal;">${setup['备注']}</td>
+                                    </tr>`).join('')}
+                                </tbody>
+                            </table></div>`
+                            : '<div class="no-data">无机位编组信息</div>');
 
                         return `<div class="session-card">
                             <div class="session-header"><h4>${s['场次名称']} (${s['场次序号']}) <span class="status-badge status-${s['场次状态']}">${s['场次状态']}</span></h4></div>
@@ -320,25 +610,12 @@
                                     ${createDetailItem('日期', dateHTML)}
                                     ${createDescriptionItem('备注', s['场次备注'])}
                                 </div>
-                                ${s.equipment && s.equipment.length > 0 ? `<h5>设备请求</h5><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>设备ID</th><th>设备名称</th><th>类别</th><th>所有者</th><th>序列号</th><th>备注</th></tr></thead><tbody>
-                                    ${s.equipment.map(e => `<tr><td>${e['设备内部编码']}</td><td>${e['型号']}</td><td>${e['类别']}</td><td>${e['设备所有者']}</td><td>${e['序列号']}</td><td>${e['备注']}</td></tr>`).join('')}
-                                </tbody></table></div>` : ''}
-                                ${s.staff && s.staff.length > 0 ? `<h5>人员分配</h5><div class="details-table-wrapper"><table class="details-table">
-                                    <thead><tr><th>姓名</th><th>学号/ID</th><th>HR</th><th>职务</th><th>备注</th></tr></thead>
-                                    <tbody>
-                                        ${s.staff.map(st => `<tr>
-                                            <td>${st['NAME']}</td>
-                                            <td>${st['ID']}</td>
-                                            <td>${st['HR'] || 'N/A'}</td>
-                                            <td>${st['role'] || 'N/A'}</td>
-                                            <td>${st['备注']}</td>
-                                        </tr>`).join('')}
-                                    </tbody></table></div>` : ''}
+                                ${setupsHTML}
                             </div></div>`;
                     }).join('')}
                     </div>` : '';
 
-                const documentInfo = `<div class="detail-card">
+                    const documentInfo = `<div class="detail-card">
                     <h3>文档信息</h3>
                     <div class="detail-grid" style="grid-template-columns: 1fr;">
                         <div class="detail-item">
@@ -348,49 +625,49 @@
                     </div>
                 </div>`;
 
-                ui.reportContainer.innerHTML = header + '<div class="report-body">' + projectDetails + productRequests + sessions + documentInfo + '</div>';
-            }
-
-            function prepareAndTriggerPrint(project) {
-                const now = new Date();
-                const pad = (num) => String(num).padStart(2, '0');
-                const timestamp = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
-                const filenameTimestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-                
-                const timestampElement = ui.reportContainer.querySelector('#render-timestamp');
-                if (timestampElement) { 
-                    timestampElement.textContent = timestamp; 
+                    ui.reportContainer.innerHTML = header + '<div class="report-body">' + projectDetails + productRequests + sessions + documentInfo + '</div>';
                 }
 
-                // *** 修改点: 确保在调用 print() 之前设置 document.title ***
-                document.title = `项目详情报告_${project['项目编码']}_${filenameTimestamp}`;
-                
-                window.print();
-            }
+                function prepareAndTriggerPrint(project) {
+                    const now = new Date();
+                    const pad = (num) => String(num).padStart(2, '0');
+                    const timestamp = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
+                    const filenameTimestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
-            ui.printButton.addEventListener('click', () => { if(currentProject) prepareAndTriggerPrint(currentProject); });
+                    const timestampElement = ui.reportContainer.querySelector('#render-timestamp');
+                    if (timestampElement) {
+                        timestampElement.textContent = timestamp;
+                    }
 
-            ui.backButton.addEventListener('click', () => {
-                if (projectIdFromUrl) {
-                    window.location.href = `https://ksvg.com.cn/progress/?open=${projectIdFromUrl}`;
-                } else {
-                    window.history.back();
+                    document.title = `项目详情报告_${project['项目编码']}_${filenameTimestamp}`;
+
+                    window.print();
                 }
-            });
 
-            if (ui.closeBannerBtn) {
-                ui.closeBannerBtn.addEventListener('click', () => {
-                    ui.infoBanner.style.display = 'none';
+                ui.printButton.addEventListener('click', () => { if (currentProject) prepareAndTriggerPrint(currentProject); });
+
+                ui.backButton.addEventListener('click', () => {
+                    if (projectIdFromUrl) {
+                        window.location.href = `https://ksvg.com.cn/progress/?open=${projectIdFromUrl}`;
+                    } else {
+                        window.history.back();
+                    }
                 });
-            }
-            
-            loadAndRender();
-        });
-    } catch (e) {
-        console.error("A critical error occurred on the page:", e);
-        document.getElementById('report-container').innerHTML = `<div class="error-container"><h1>页面脚本发生严重错误</h1><p style="color: red;">请联系管理员。</p></div>`;
-        document.getElementById('loading-overlay').style.display = 'none';
-    }
+
+                if (ui.closeBannerBtn) {
+                    ui.closeBannerBtn.addEventListener('click', () => {
+                        ui.infoBanner.style.display = 'none';
+                    });
+                }
+
+                loadAndRender();
+            });
+        } catch (e) {
+            console.error("A critical error occurred on the page:", e);
+            document.getElementById('report-container').innerHTML = `<div class="error-container"><h1>页面脚本发生严重错误</h1><p style="color: red;">请联系管理员。</p></div>`;
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
     </script>
 </body>
+
 </html>

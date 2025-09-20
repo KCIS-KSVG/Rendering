@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSVG｜项目输出服务</title>
+    <title>KSVG｜文件输出中心</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
@@ -14,19 +14,35 @@
             --primary-color: #920783; --secondary-color: #007bff; --dark-gray: #1d1d1f;
             --medium-gray: #424245; --light-gray: #f5f5f7; --text-color: #1d1d1f;
             --status-ongoing-bg: #e6f7ff; --status-ongoing-text: #006d9c;
-            --status-completed-bg: #f6ffed; --status-completed-text: #389e0d; --status-archived-bg: #fafafa;
-            --status-archived-text: #8c8c8c; --status-planned-bg: #f0f5ff; --status-planned-text: #2f54eb;
+            --status-completed-bg: #f6ffed; --status-completed-text: #389e0d;
+            --status-archived-bg: #fafafa; --status-archived-text: #8c8c8c;
+            --status-planned-bg: #f0f5ff; --status-planned-text: #2f54eb;
             --status-cancelled-bg: #fff1f0; --status-cancelled-text: #cf1322;
         }
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif; background-color: var(--light-gray); color: var(--text-color);
-            line-height: 1.6; display: flex; flex-direction: column; align-items: center; padding: 40px 20px;
+            line-height: 1.6; display: flex; flex-direction: column; align-items: center; padding: 20px;
+            padding-top: 80px;
         }
-        
+        #info-banner {
+            display: flex; width: 100%; max-width: 210mm; background-color: #f0f5ff;
+            color: #2f54eb; border: 1px solid #adc6ff; border-radius: 8px;
+            padding: 12px 15px; margin-bottom: 20px; justify-content: space-between;
+            align-items: center; font-size: 0.9rem;
+            /* *** 修改点 1: 降低提示框的 z-index *** */
+            z-index: 5; 
+        }
+        #info-banner p { margin-right: 15px; }
+        #close-banner-btn {
+            background: none; border: none; font-size: 24px; font-weight: bold;
+            color: #2f54eb; cursor: pointer; padding: 0 5px; line-height: 1;
+        }
         #controls {
-            position: fixed; top: 20px; right: 20px; display: flex; gap: 15px; z-index: 10;
+            position: fixed; top: 20px; right: 20px; display: flex; gap: 15px; 
+            /* *** 修改点 1: 确保按钮的 z-index 更高 *** */
+            z-index: 10;
         }
         .control-button {
             display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
@@ -35,7 +51,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.2s ease;
         }
         .control-button:hover { background-color: #f0f0f0; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px);
@@ -47,15 +62,10 @@
             border-radius: 50%; width: 70px; height: 70px; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         #report-container {
-            width: 210mm;
-            background: #fff;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            padding: 1in;
-            display: flex; flex-direction: column;
+            width: 210mm; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 0.7in; display: flex; flex-direction: column;
         }
-        
         .error-container {
             text-align: center; padding: 40px; background-color: #fff; border-radius: 12px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.1); max-width: 600px;
@@ -64,124 +74,121 @@
         .error-container h1 { font-family: 'Poppins', sans-serif; font-size: 2rem; margin-bottom: 10px; }
         .error-container p { font-size: 1.1rem; color: var(--medium-gray); margin-bottom: 25px; }
         .error-container code { background-color: #eee; padding: 3px 8px; border-radius: 4px; font-family: monospace; }
-
         .report-header {
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #ddd;
         }
-        .header-text h1 {
-            font-family: 'Poppins', sans-serif; font-size: 16pt; color: #000;
-            font-weight: 600; margin: 0;
-        }
-        .header-text h2 {
-            font-family: 'Inter', sans-serif; font-size: 14pt; color: var(--medium-gray);
-            font-weight: 600; margin: 5px 0 0 0;
-        }
+        .header-text h1 { font-family: 'Poppins', sans-serif; font-size: 16pt; color: #000; font-weight: 600; margin: 0; }
+        .header-text h2 { font-family: 'Inter', sans-serif; font-size: 14pt; color: var(--medium-gray); font-weight: 600; margin: 5px 0 0 0; }
         .report-logo { height: 60px; width: auto; }
-
         .detail-card { margin-bottom: 25px; }
         .detail-card h3 { font-size: 14pt; padding-bottom: 8px; border-bottom: 1px solid #ccc; margin-bottom: 15px; }
         .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px 30px; }
         .detail-item { display: flex; flex-direction: column; font-size: 10pt; page-break-inside: avoid; }
         .detail-item .label { color: var(--medium-gray); font-weight: 600; margin-bottom: 5px; }
-        .detail-item .value { color: var(--dark-gray); }
+        .detail-item .value { color: var(--dark-gray); word-break: break-all; }
         .detail-item .value.description { white-space: pre-wrap; grid-column: 1 / -1; }
-        .session-card { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
+        .section-divider {
+            border: none; border-top: 1px solid #eee; margin: 25px 0;
+        }
+        .session-card {
+            border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .session-card:last-child { margin-bottom: 0; }
         .session-header { background: #f0f0f0; padding: 10px 15px; border-bottom: 1px solid #ddd; }
         .session-header h4 { font-size: 12pt; margin: 0; display: flex; justify-content: space-between; align-items: center; }
         .session-body { padding: 15px; }
         .session-body h5 { font-size: 11pt; margin-top: 15px; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; }
         .session-body h5:first-child { margin-top: 0; }
         .details-table-wrapper { overflow-x: auto; }
-        .details-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-        .details-table th, .details-table td { padding: 8px; text-align: left; border: 1px solid #ddd; }
+        .details-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+        .details-table th, .details-table td { padding: 6px; text-align: left; border: 1px solid #ddd; white-space: nowrap; }
         .details-table th { background: #f9f9f9; font-weight: 600; }
         .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         
         @media (max-width: 830px) {
-            body { padding: 20px 10px; }
-            #report-container {
-                width: 100%;
-                padding: 20px;
-                min-height: 0;
-            }
+            body { padding-top: 20px; }
+            #controls { position: static; width: 100%; max-width: 210mm; justify-content: flex-end; margin-bottom: 20px; }
+            #report-container { width: 100%; padding: 20px; min-height: 0; }
         }
-
-        @page {
-            size: A4 portrait;
-            margin: 1in;
-            counter-reset: page;
-        }
+        
+        @page { size: A4 portrait; margin: 0.7in; }
+        
         @media print {
             body { background: none; padding: 0; }
-            #controls, #loading-overlay { display: none !important; }
-            #report-container {
-                width: 100%; max-width: 100%; min-height: 0; box-shadow: none; padding: 0;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .print-footer-wrapper {
-                position: fixed; bottom: 0; left: 1in; right: 1in; height: 1in;
-                display: flex; align-items: flex-end;
-            }
-            .print-footer {
-                width: 100%;
-                display: flex; justify-content: space-between;
-                padding-bottom: 20px;
-            }
-            .print-timestamp { font-size: 9pt; color: #888; }
-            .print-page-number::after {
-                content: counter(page);
-                font-size: 10pt;
-            }
+            #controls, #loading-overlay, #info-banner { display: none !important; }
+            #report-container { width: 100%; max-width: 100%; min-height: 0; box-shadow: none; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .detail-card, .session-card { page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
+    <div id="info-banner">
+        <p><strong>服务提示：</strong>使用不同的浏览器使用该服务可能导致部分输出效果不一致，建议使用 Google Chrome进行渲染。当前因技术问题，无法实现页码标记，敬请谅解。</p>
+        <button id="close-banner-btn" title="关闭提示">&times;</button>
+    </div>
 
     <div id="controls">
         <button class="control-button" id="back-button"><i class="ri-arrow-left-line"></i> 返回</button>
         <button class="control-button" id="print-button"><i class="ri-printer-line"></i> 打印</button>
     </div>
-
     <div id="loading-overlay">
         <div class="loader"></div>
     </div>
-
-    <div id="report-container">
-        <!-- Content will be injected by JavaScript -->
-    </div>
+    <div id="report-container"></div>
 
     <script>
     try {
         document.addEventListener("DOMContentLoaded", function () {
             const BASE_URL = 'https://raw.githubusercontent.com/KCIS-KSVG/Data/main/progress/';
             const URLS = {
-                projects: `${BASE_URL}ksvg.com.cn_progress_data%20-%20projects.csv`, sessions: `${BASE_URL}ksvg.com.cn_progress_data%20-%20sessions.csv`,
-                prodRequests: `${BASE_URL}ksvg.com.cn_progress_data%20-%20prodRequest.csv`, equiRequests: `${BASE_URL}ksvg.com.cn_progress_data%20-%20equiRequest.csv`,
-                staffRequests: `${BASE_URL}ksvg.com.cn_progress_data%20-%20staffRequest.csv`, bdEquipment: `${BASE_URL}ksvg.com.cn_progress_data%20-%20BD_Equipment.csv`,
-                bdStaff: `${BASE_URL}ksvg.com.cn_progress_data%20-%20BD_Staff.csv`
+                projects: `${BASE_URL}01.csv`, sessions: `${BASE_URL}02.csv`,
+                setups: `${BASE_URL}03.csv`, products: `${BASE_URL}04.csv`,
+                staff: `${BASE_URL}05.csv`, equipment: `${BASE_URL}06.csv`
             };
-
             const ui = {
                 loadingOverlay: document.getElementById('loading-overlay'),
                 reportContainer: document.getElementById('report-container'),
                 printButton: document.getElementById('print-button'),
-                backButton: document.getElementById('back-button')
+                backButton: document.getElementById('back-button'),
+                infoBanner: document.getElementById('info-banner'),
+                closeBannerBtn: document.getElementById('close-banner-btn')
             };
-
             let currentProject = null;
+            let projectIdFromUrl = '';
 
-            function parseCSV(text) { if (!text) return []; const lines = text.trim().split(/\r?\n/); if (lines.length < 2) return []; const headers = lines[0].split(',').map(h => h.trim()); return lines.slice(1).map(line => { const values = line.split(','); return headers.reduce((obj, header, index) => { obj[header] = (values[index] || '').trim(); return obj; }, {}); }); }
-            async function fetchCSV(url) { const response = await fetch(`${url}?v=${new Date().getTime()}`); if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.statusText}`); return await response.text(); }
-            
+            function parseCSV(text) {
+                if (!text) return [];
+                const lines = text.trim().replace(/^\uFEFF/, "").split(/\r?\n/);
+                if (lines.length < 2) return [];
+                const headers = lines[0].split(',').map(h => h.trim());
+                return lines.slice(1).map(line => {
+                    const values = line.split(',');
+                    return headers.reduce((obj, header, index) => {
+                        obj[header] = (values[index] || '').trim();
+                        return obj;
+                    }, {});
+                });
+            }
+
+            async function fetchCSV(url) {
+                const response = await fetch(`${url}?v=${new Date().getTime()}`);
+                if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+                return await response.text();
+            }
+
             async function loadAndRender() {
                 const params = new URLSearchParams(window.location.search);
-                const projectId = params.get('id');
+                projectIdFromUrl = params.get('id'); 
+                
+                let projectIdToSearch = projectIdFromUrl;
+                if (projectIdToSearch) {
+                    projectIdToSearch = projectIdToSearch.replace('PRJ-', '');
+                }
 
-                if (!projectId) {
-                    ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过正确的链接访问此页面，例如：<br><code>...?id=PRJ-XXXX</code></p></div>`;
+                if (!projectIdToSearch) {
+                    ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过正确的链接访问此页面，例如：<br><code>...?id=2601</code></p></div>`;
                     ui.loadingOverlay.style.display = 'none';
                     ui.printButton.disabled = true;
                     return;
@@ -189,37 +196,46 @@
 
                 try {
                     const results = await Promise.allSettled(Object.values(URLS).map(fetchCSV));
-                    const [projectsCSV, sessionsCSV, prodRequestsCSV, equiRequestsCSV, staffRequestsCSV, bdEquipmentCSV, bdStaffCSV] = results.map(res => res.status === 'fulfilled' ? res.value : '');
-                    if (!projectsCSV) throw new Error("Critical file 'projects.csv' failed to load.");
-                    const projects = parseCSV(projectsCSV); const sessions = parseCSV(sessionsCSV);
-                    const prodRequests = parseCSV(prodRequestsCSV); const equiRequests = parseCSV(equiRequestsCSV);
-                    const staffRequests = parseCSV(staffRequestsCSV); const bdEquipment = parseCSV(bdEquipmentCSV);
-                    const bdStaff = parseCSV(bdStaffCSV);
+                    const [projects, sessions, setups, products, staff, equipment] = results.map(res => res.status === 'fulfilled' ? parseCSV(res.value) : []);
                     
-                    currentProject = projects.find(p => p.id === projectId);
-                    if (!currentProject) {
-                        throw new Error(`项目ID "${projectId}" 未找到。`);
-                    }
+                    if (!projects || projects.length === 0) throw new Error("关键文件 '01.csv' (项目) 加载失败或为空。");
 
-                    const projectSessions = sessions.filter(s => s.projectId === currentProject.id).map(s => {
-                        const resolvedEquipment = equiRequests.filter(er => er.sessionId === s.id).map(req => {
-                            const details = bdEquipment.find(dev => dev.id === req.equipmentId) || {};
-                            return { ...req, ...details };
+                    currentProject = projects.find(p => p['项目编码'] === projectIdToSearch);
+                    
+                    if (!currentProject) {
+                        throw new Error(`项目ID "${projectIdFromUrl}" 未找到。`);
+                    }
+                    
+                    currentProject.products = products.filter(p => p['项目编码（自动）'] === currentProject['项目编码']);
+                    
+                    const projectSessions = sessions.filter(s => s['项目编码（自动）'] === currentProject['项目编码']).map(session => {
+                        const sessionSetups = setups.filter(setup => setup['场次归属（关联）'] === session['场次名称']);
+                        const equipmentMap = new Map();
+                        const staffMap = new Map();
+
+                        sessionSetups.forEach(setup => {
+                            if (setup['设备配置']) {
+                                const equipDetails = equipment.find(e => e['型号'] === setup['设备配置']);
+                                if (equipDetails && !equipmentMap.has(equipDetails['设备内部编码'])) {
+                                    equipmentMap.set(equipDetails['设备内部编码'], {...equipDetails, '备注': setup['备注']});
+                                }
+                            }
+                            if (setup['人员配置']) {
+                                const staffDetails = staff.find(s => s['NAME'] === setup['人员配置']);
+                                if (staffDetails && !staffMap.has(staffDetails['ID'])) {
+                                    staffMap.set(staffDetails['ID'], {...staffDetails, '备注': setup['备注']});
+                                }
+                            }
                         });
-                        const resolvedStaff = staffRequests.filter(sr => sr.sessionId === s.id).map(req => {
-                            const details = bdStaff.find(staff => staff.id === req.staffId) || {};
-                            return { ...req, ...details };
-                        });
-                        return { ...s, equipment: resolvedEquipment, staff: resolvedStaff };
+                        
+                        return { ...session, equipment: Array.from(equipmentMap.values()), staff: Array.from(staffMap.values()) };
                     });
-                    currentProject.products = prodRequests.filter(pr => pr.projectId === currentProject.id);
+                    
                     currentProject.sessions = projectSessions;
 
                     renderReport(currentProject);
                     ui.loadingOverlay.style.opacity = '0';
-                    setTimeout(() => {
-                        ui.loadingOverlay.style.display = 'none';
-                    }, 300);
+                    setTimeout(() => { ui.loadingOverlay.style.display = 'none'; }, 300);
 
                 } catch (error) {
                     console.error('Data loading or processing failed:', error);
@@ -229,72 +245,136 @@
                 }
             }
 
-            function serialToDate(serial) { if (!serial || isNaN(serial)) return 'N/A'; const date = new Date(Date.UTC(1899, 11, 30) + serial * 86400000); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
+            // *** 修改点 2: 更新日期格式化函数 ***
+            function formatDateString(dateStr) {
+                if (!dateStr) return 'N/A';
+                // 尝试匹配包含时间的格式
+                let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日\s*(\d{1,2}):(\d{2})/);
+                if (match) {
+                    const [, year, month, day, hour, minute] = match;
+                    return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日 ${hour.padStart(2, '0')}时${minute}分`;
+                }
+                //  fallback 到只匹配日期的格式
+                match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
+                if (match) {
+                    const [, year, month, day] = match;
+                    return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日`;
+                }
+                return dateStr;
+            }
 
             function renderReport(p) {
-                const createDetailItem = (label, value) => value ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
+                const createDetailItem = (label, value) => value || value === 0 ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
                 const createDescriptionItem = (label, value) => value ? `<div class="detail-item value description"><div class="label">${label}</div>${value}</div>` : '';
                 
-                const header = `<div class="report-header"><div class="header-text"><h1>项目详情报告</h1><h2>${p.name}</h2></div><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
+                const driveLink = p['云端硬盘文稿库'];
+                const driveLinkHTML = driveLink ? `<a href="${driveLink}" target="_blank">点此查看</a>` : '无';
+
+                const header = `<div class="report-header"><div class="header-text"><h1>项目详情报告</h1><h2>${p['项目注册名称']}</h2></div><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
                 
-                const projectDetails = `<div class="detail-card"><h3>项目详情</h3><div class="detail-card-body"><div class="detail-grid">
-                    ${createDetailItem('内部编号', p.id)} ${createDetailItem('合作部门', p.department)}
-                    ${createDetailItem('状态', `<span class="status-badge status-${p.status}">${p.status}</span>`)}
-                    ${createDetailItem('开始日期', serialToDate(p.startDate))} ${createDetailItem('结束日期', serialToDate(p.endDate))}
-                    ${createDetailItem('项目经理', p.manager)}
-                    ${createDescriptionItem('项目描述', p.description)}
-                    </div></div></div>`;
+                const projectDetails = `<div class="detail-card">
+                    <h3>项目详情</h3>
+                    <div class="detail-grid">
+                        ${createDetailItem('内部编号', p['项目编码'])}
+                        ${createDetailItem('合作部门', p['对接部门和组织'])}
+                        ${createDetailItem('状态', `<span class="status-badge status-${p['状态项目']}">${p['状态项目']}</span>`)}
+                        ${createDetailItem('开始日期', formatDateString(p['项目开始日期']))}
+                        ${createDetailItem('结束日期', formatDateString(p['项目结束日期']))}
+                        ${createDetailItem('项目负责人', p['项目负责人'])}
+                    </div>
+                    <hr class="section-divider">
+                    <div class="detail-grid">
+                        ${createDetailItem('全局视频规格', p['全局视频规格'])}
+                        ${createDetailItem('全局照片规格', p['全局照片规格'])}
+                        ${createDetailItem('本地媒体备份', p['本地媒体备份'])}
+                        ${createDetailItem('云端媒体备份', p['云端媒体备份'])}
+                        ${createDetailItem('云端硬盘文稿库', driveLinkHTML)}
+                    </div>
+                    ${createDescriptionItem('项目备注', p['备注'])}
+                </div>`;
 
                 const productRequests = p.products && p.products.length > 0 ? `<div class="detail-card"><h3>产品请求</h3><div class="detail-card-body" style="padding:0;">
-                    <div class="details-table-wrapper"><table class="details-table"><thead><tr><th>编号</th><th>类别</th><th>名称</th><th>负责人</th><th>状态</th><th>备注</th></tr></thead><tbody>
-                    ${p.products.map(pr => `<tr><td>${pr.id}</td><td>${pr.category}</td><td>${pr.name}</td><td>${pr.staff}</td><td><span class="status-badge status-${pr.status}">${pr.status}</span></td><td>${pr.notes}</td></tr>`).join('')}
+                    <div class="details-table-wrapper"><table class="details-table"><thead><tr><th>编号</th><th>类别</th><th>名称/描述</th><th>负责人</th><th>状态</th><th>备注</th></tr></thead><tbody>
+                    ${p.products.map(pr => `<tr><td>${pr['产品编码']}</td><td>${pr['分类']}</td><td style="white-space:normal;">${pr['需求描述']}</td><td>${pr['负责人']}</td><td><span class="status-badge status-${pr['状态']}">${pr['状态']}</span></td><td>${pr['备注']}</td></tr>`).join('')}
                     </tbody></table></div></div></div>` : '';
-
-                const sessions = p.sessions && p.sessions.length > 0 ? p.sessions.map(s => `<div class="session-card">
-                    <div class="session-header"><h4>${s.name} (${s.id}) <span class="status-badge status-${s.status}">${s.status}</span></h4></div>
-                    <div class="session-body">
-                        <div class="detail-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
-                            ${createDetailItem('场地', s.site)} ${createDetailItem('日期', `${serialToDate(s.startDate)} ~ ${serialToDate(s.endDate)}`)}
-                            ${createDescriptionItem('备注', s.notes)}
-                        </div>
-                        ${s.equipment && s.equipment.length > 0 ? `<h5>设备请求</h5><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>请求ID</th><th>设备名称</th><th>类别</th><th>所有者</th><th>序列号</th><th>备注</th></tr></thead><tbody>
-                            ${s.equipment.map(e => `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.category}</td><td>${e.owner}</td><td>${e.serialNumbers}</td><td>${e.notes}</td></tr>`).join('')}
-                        </tbody></table></div>` : ''}
-                        ${s.staff && s.staff.length > 0 ? `<h5>人员分配</h5><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>姓名</th><th>职位</th><th>学号/ID</th><th>备注</th></tr></thead><tbody>
-                            ${s.staff.map(st => `<tr><td>${st.name}</td><td>${st.position}</td><td>${st.id}</td><td>${st.note}</td></tr>`).join('')}
-                        </tbody></table></div>` : ''}
-                    </div></div>`).join('') : '';
                 
-                const footer = `<div class="print-footer-wrapper"><div class="print-footer"><div class="print-timestamp"></div><div class="print-page-number"></div></div></div>`;
+                // *** 修改点 2: 更新场次日期显示逻辑 ***
+                const sessions = p.sessions && p.sessions.length > 0 ? `<div class="detail-card"><h3>归属场次</h3>
+                    ${p.sessions.map(s => {
+                        const startDate = formatDateString(s['场次开始时间']);
+                        const endDate = formatDateString(s['场次结束时间']);
+                        const dateHTML = `起始：${startDate}<br>结束：${endDate}`;
 
-                ui.reportContainer.innerHTML = header + '<div class="report-body">' + projectDetails + productRequests + sessions + '</div>' + footer;
+                        return `<div class="session-card">
+                            <div class="session-header"><h4>${s['场次名称']} (${s['场次序号']}) <span class="status-badge status-${s['场次状态']}">${s['场次状态']}</span></h4></div>
+                            <div class="session-body">
+                                <div class="detail-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
+                                    ${createDetailItem('场地', s['执行地点'])}
+                                    ${createDetailItem('日期', dateHTML)}
+                                    ${createDescriptionItem('备注', s['场次备注'])}
+                                </div>
+                                ${s.equipment && s.equipment.length > 0 ? `<h5>设备请求</h5><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>设备ID</th><th>设备名称</th><th>类别</th><th>所有者</th><th>序列号</th><th>备注</th></tr></thead><tbody>
+                                    ${s.equipment.map(e => `<tr><td>${e['设备内部编码']}</td><td>${e['型号']}</td><td>${e['类别']}</td><td>${e['设备所有者']}</td><td>${e['序列号']}</td><td>${e['备注']}</td></tr>`).join('')}
+                                </tbody></table></div>` : ''}
+                                ${s.staff && s.staff.length > 0 ? `<h5>人员分配</h5><div class="details-table-wrapper"><table class="details-table">
+                                    <thead><tr><th>姓名</th><th>学号/ID</th><th>HR</th><th>职务</th><th>备注</th></tr></thead>
+                                    <tbody>
+                                        ${s.staff.map(st => `<tr>
+                                            <td>${st['NAME']}</td>
+                                            <td>${st['ID']}</td>
+                                            <td>${st['HR'] || 'N/A'}</td>
+                                            <td>${st['role'] || 'N/A'}</td>
+                                            <td>${st['备注']}</td>
+                                        </tr>`).join('')}
+                                    </tbody></table></div>` : ''}
+                            </div></div>`;
+                    }).join('')}
+                    </div>` : '';
+
+                const documentInfo = `<div class="detail-card">
+                    <h3>文档信息</h3>
+                    <div class="detail-grid" style="grid-template-columns: 1fr;">
+                        <div class="detail-item">
+                           <div class="label">文件输出时间</div>
+                           <div class="value" id="render-timestamp">将在打印时生成</div>
+                        </div>
+                    </div>
+                </div>`;
+
+                ui.reportContainer.innerHTML = header + '<div class="report-body">' + projectDetails + productRequests + sessions + documentInfo + '</div>';
             }
 
             function prepareAndTriggerPrint(project) {
                 const now = new Date();
                 const pad = (num) => String(num).padStart(2, '0');
-                const timestamp = `文件输出时间: ${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
+                const timestamp = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
                 const filenameTimestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
                 
-                const timestampElement = ui.reportContainer.querySelector('.print-timestamp');
-                if (timestampElement) {
-                    timestampElement.textContent = timestamp;
+                const timestampElement = ui.reportContainer.querySelector('#render-timestamp');
+                if (timestampElement) { 
+                    timestampElement.textContent = timestamp; 
                 }
-                
-                document.title = `项目详情报告_${project.id}_${filenameTimestamp}`;
-                
+
+                document.title = `项目详情报告_${project['项目编码']}_${filenameTimestamp}`;
                 window.print();
             }
 
-            ui.printButton.addEventListener('click', () => {
-                if(currentProject) prepareAndTriggerPrint(currentProject);
-            });
+            ui.printButton.addEventListener('click', () => { if(currentProject) prepareAndTriggerPrint(currentProject); });
 
             ui.backButton.addEventListener('click', () => {
-                const projectId = new URLSearchParams(window.location.search).get('id');
-                window.location.href = `https://ksvg.com.cn/progress/?open=${projectId}`;
+                if (projectIdFromUrl) {
+                    window.location.href = `https://ksvg.com.cn/progress/?open=${projectIdFromUrl}`;
+                } else {
+                    window.history.back();
+                }
             });
 
+            if (ui.closeBannerBtn) {
+                ui.closeBannerBtn.addEventListener('click', () => {
+                    ui.infoBanner.style.display = 'none';
+                });
+            }
+            
             loadAndRender();
         });
     } catch (e) {

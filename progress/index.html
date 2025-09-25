@@ -1,3 +1,4 @@
+<!--KSVG 项目进展（详情）报告渲染-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -91,7 +92,7 @@
             top: 20px;
             right: 20px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             z-index: 10;
         }
 
@@ -99,11 +100,11 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 20px;
+            padding: 8px 16px;
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -156,6 +157,8 @@
             padding: 0.7in;
             display: flex;
             flex-direction: column;
+            transform-origin: top center;
+            transition: transform 0.2s ease-in-out;
         }
 
         .error-container {
@@ -254,12 +257,11 @@
 
         .detail-item .value {
             color: var(--dark-gray);
-            word-break: break-all;
+            word-break: break-word;
         }
 
         .detail-item .value.description {
             white-space: pre-wrap;
-            grid-column: 1 / -1;
         }
 
         .section-divider {
@@ -273,6 +275,7 @@
             border-radius: 8px;
             margin-bottom: 20px;
             overflow: hidden;
+            page-break-inside: avoid;
         }
 
         .session-card:last-child {
@@ -325,6 +328,7 @@
             text-align: left;
             border: 1px solid #ddd;
             white-space: nowrap;
+            vertical-align: top;
         }
 
         .details-table th {
@@ -332,25 +336,73 @@
             font-weight: 600;
         }
 
+        .details-table td[rowspan] {
+            vertical-align: middle;
+        }
+
+        .no-data {
+            color: var(--medium-gray);
+            padding: 15px;
+            text-align: center;
+        }
+
         .status-badge {
             display: inline-block;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 0.8em;
+            font-size: 0.9em;
             font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .session-header .status-badge {
+            font-size: 0.8em;
+            padding: 2px 6px;
+        }
+
+        .status-计划,
+        .status-计划中 {
+            background-color: var(--status-planned-bg);
+            color: var(--status-planned-text);
+        }
+
+        .status-进行,
+        .status-进行中 {
+            background-color: var(--status-ongoing-bg);
+            color: var(--status-ongoing-text);
+        }
+
+        .status-完成,
+        .status-结束,
+        .status-已完成,
+        .status-提交完成 {
+            background-color: var(--status-completed-bg);
+            color: var(--status-completed-text);
+        }
+
+        .status-归档 {
+            background-color: var(--status-archived-bg);
+            color: var(--status-archived-text);
+        }
+
+        .status-取消 {
+            background-color: var(--status-cancelled-bg);
+            color: var(--status-cancelled-text);
         }
 
         @media (max-width: 830px) {
             body {
+                padding: 20px;
                 padding-top: 20px;
             }
 
             #controls {
                 position: static;
                 width: 100%;
-                max-width: 210mm;
+                max-width: 100%;
                 justify-content: flex-end;
                 margin-bottom: 20px;
+                flex-wrap: wrap;
             }
 
             #report-container {
@@ -383,13 +435,9 @@
                 min-height: 0;
                 box-shadow: none;
                 padding: 0;
+                transform: scale(1) !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-            }
-
-            .detail-card,
-            .session-card {
-                page-break-inside: avoid;
             }
         }
     </style>
@@ -403,6 +451,9 @@
 
     <div id="controls">
         <button class="control-button" id="back-button"><i class="ri-arrow-left-line"></i> 返回</button>
+        <button class="control-button" id="zoom-out-button"><i class="ri-zoom-out-line"></i> 缩小</button>
+        <button class="control-button" id="zoom-reset-button">100%</button>
+        <button class="control-button" id="zoom-in-button"><i class="ri-zoom-in-line"></i> 放大</button>
         <button class="control-button" id="print-button"><i class="ri-printer-line"></i> 打印</button>
     </div>
     <div id="loading-overlay">
@@ -413,24 +464,29 @@
     <script>
         try {
             document.addEventListener("DOMContentLoaded", function () {
-                const BASE_URL = 'https://raw.githubusercontent.com/KCIS-KSVG/Data/main/progress/';
+                const BASE_URL = 'https://raw.githubusercontent.com/KCIS-KSVG/Data/main/test_progress/';
                 const URLS = {
                     projects: `${BASE_URL}01.csv`, sessions: `${BASE_URL}02.csv`,
                     setups: `${BASE_URL}03.csv`, products: `${BASE_URL}04.csv`,
-                    staff: `${BASE_URL}05.csv`, equipment: `${BASE_URL}06.csv`
+                    staff: `${BASE_URL}05.csv`, assets: `${BASE_URL}06.csv`
                 };
+
                 const ui = {
                     loadingOverlay: document.getElementById('loading-overlay'),
                     reportContainer: document.getElementById('report-container'),
                     printButton: document.getElementById('print-button'),
                     backButton: document.getElementById('back-button'),
                     infoBanner: document.getElementById('info-banner'),
-                    closeBannerBtn: document.getElementById('close-banner-btn')
+                    closeBannerBtn: document.getElementById('close-banner-btn'),
+                    zoomInButton: document.getElementById('zoom-in-button'),
+                    zoomOutButton: document.getElementById('zoom-out-button'),
+                    zoomResetButton: document.getElementById('zoom-reset-button'),
                 };
                 let currentProject = null;
                 let projectIdFromUrl = '';
+                let currentZoom = 1.0;
+                const ZOOM_STEP = 0.1;
 
-                // *** 核心修改: 更新CSV解析函数 ***
                 function parseCSV(text) {
                     if (!text) return [];
                     const lines = text.trim().replace(/^\uFEFF/, "").split(/\r?\n/);
@@ -442,26 +498,33 @@
                         let current = '';
                         let inQuotes = false;
                         for (const char of line) {
-                            if (char === '"') {
+                            if (char === '"' && inQuotes) {
+                                if (current.slice(-1) === '"') {
+                                    current = current.slice(0, -1) + '"';
+                                } else {
+                                    inQuotes = !inQuotes;
+                                }
+                            } else if (char === '"') {
                                 inQuotes = !inQuotes;
                             } else if (char === ',' && !inQuotes) {
-                                result.push(current);
+                                result.push(current.trim());
                                 current = '';
                             } else {
                                 current += char;
                             }
                         }
-                        result.push(current);
+                        result.push(current.trim());
                         return result;
                     };
 
                     return lines.slice(1).map(line => {
+                        if (!line.trim()) return null;
                         const values = splitCsvLine(line);
                         return headers.reduce((obj, header, index) => {
                             obj[header] = (values[index] || '').trim();
                             return obj;
                         }, {});
-                    });
+                    }).filter(Boolean);
                 }
 
                 async function fetchCSV(url) {
@@ -470,18 +533,12 @@
                     return await response.text();
                 }
 
-                // *** 核心修改: 更新数据加载和关联逻辑 ***
                 async function loadAndRender() {
                     const params = new URLSearchParams(window.location.search);
                     projectIdFromUrl = params.get('id');
 
-                    let projectIdToSearch = projectIdFromUrl;
-                    if (projectIdToSearch) {
-                        projectIdToSearch = projectIdToSearch.replace('PRJ-', '');
-                    }
-
-                    if (!projectIdToSearch) {
-                        ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过正确的链接访问此页面，例如：<br><code>...?id=2601</code></p></div>`;
+                    if (!projectIdFromUrl) {
+                        ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过主页的详情弹窗访问此页面，例如：<br><code>...?id=PRJ-2601</code></p></div>`;
                         ui.loadingOverlay.style.display = 'none';
                         ui.printButton.disabled = true;
                         return;
@@ -489,78 +546,99 @@
 
                     try {
                         const results = await Promise.allSettled(Object.values(URLS).map(fetchCSV));
-                        const [projects, sessions, setups, products, staff, equipment] = results.map(res => res.status === 'fulfilled' ? parseCSV(res.value) : []);
+                        const [projects, sessions, setups, products, staff, assets] = results.map(res => res.status === 'fulfilled' ? parseCSV(res.value) : []);
 
                         if (!projects || projects.length === 0) throw new Error("关键文件 '01.csv' (项目) 加载失败或为空。");
 
-                        currentProject = projects.find(p => p['项目编码'] === projectIdToSearch);
+                        const targetProject = projects.find(p => p['项目编码（自动）'] === projectIdFromUrl);
 
-                        if (!currentProject) {
-                            throw new Error(`项目ID "${projectIdFromUrl}" 未找到。`);
+                        if (!targetProject) {
+                            throw new Error(`项目ID "${projectIdFromUrl}" 未在数据中找到。`);
                         }
 
-                        currentProject.products = products.filter(p => p['项目编码（自动）'] === currentProject['项目编码']);
+                        const staffMap = new Map(staff.map(s => [s['成员编号'], s]));
+                        const assetsMap = new Map(assets.map(a => [a['资产编码（自动）'], a]));
+                        const productsMap = new Map(products.map(p => [p['产品编码'], p]));
+                        const sessionsMap = new Map(sessions.map(s => [s['场次编码（自动）'], s]));
+                        const setupsMap = new Map(setups.map(s => [s['机位编码'], s]));
 
-                        const projectSessions = sessions.filter(s => s['项目编码（自动）'] === currentProject['项目编码']).map(session => {
-                            const sessionSetups = setups.filter(setup => setup['场次归属（关联）'] === session['场次名称'])
-                                .map(setup => {
-                                    const staffDetails = staff.find(s => s['NAME'] === setup['人员配置']);
-                                    const equipDetails = equipment.find(e => e['型号'] === setup['设备配置']);
-                                    return { ...setup, staff: staffDetails, equipment: equipDetails };
-                                });
+                        const productCodes = (targetProject['产品请求编码（自动）'] || '').split(',').map(s => s.trim()).filter(Boolean);
+                        const sessionCodes = (targetProject['附属场次编码（自动）'] || '').split(',').map(s => s.trim()).filter(Boolean);
+
+                        targetProject.products = productCodes.map(code => productsMap.get(code)).filter(Boolean);
+
+                        targetProject.sessions = sessionCodes.map(code => sessionsMap.get(code)).filter(Boolean).map(session => {
+                            const setupCodes = (session['机位配置编码（关联）'] || '').split(',').map(s => s.trim()).filter(Boolean);
+                            const sessionSetups = setupCodes.map(code => setupsMap.get(code)).filter(Boolean).map(setup => {
+                                const staffDetails = staffMap.get(setup['机位负责人编码（自动）']);
+                                const assetCodes = (setup['设备配置编码（自动）'] || '').split(',').map(s => s.trim()).filter(Boolean);
+                                const setupAssets = assetCodes.map(code => assetsMap.get(code)).filter(Boolean);
+                                return { ...setup, staff: staffDetails, assets: setupAssets };
+                            });
                             return { ...session, setups: sessionSetups };
                         });
 
-                        currentProject.sessions = projectSessions;
-
+                        currentProject = targetProject;
+                        setDocumentTitle(currentProject, false);
                         renderReport(currentProject);
-                        ui.loadingOverlay.style.opacity = '0';
-                        setTimeout(() => { ui.loadingOverlay.style.display = 'none'; }, 300);
 
                     } catch (error) {
                         console.error('Data loading or processing failed:', error);
                         ui.reportContainer.innerHTML = `<div class="error-container"><h1>数据加载失败</h1><p style="color: red;">${error.message}</p></div>`;
-                        ui.loadingOverlay.style.display = 'none';
                         ui.printButton.disabled = true;
+                    } finally {
+                        ui.loadingOverlay.style.opacity = '0';
+                        setTimeout(() => { ui.loadingOverlay.style.display = 'none'; }, 300);
                     }
                 }
 
                 function formatDateString(dateStr, includeTime = false) {
-                    if (!dateStr || dateStr.toLowerCase() === 'n/a') return 'N/A';
-
-                    if (includeTime) {
-                        let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日\s*(\d{1,2}):(\d{2})/);
-                        if (match) {
-                            const [, year, month, day, hour, minute] = match;
-                            return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日 ${hour.padStart(2, '0')}时${minute}分`;
+                    if (!dateStr || dateStr.toLowerCase() === 'n/a' || dateStr.toLowerCase() === '待通知') return '待通知';
+                    try {
+                        let date;
+                        let matchWithTime = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日\s*(\d{1,2}):(\d{2})/);
+                        if (includeTime && matchWithTime) {
+                            const [, year, month, day, hour, minute] = matchWithTime;
+                            date = new Date(year, month - 1, day, hour, minute);
+                        } else {
+                            let matchDateOnly = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
+                            if (matchDateOnly) {
+                                const [, year, month, day] = matchDateOnly;
+                                date = new Date(year, month - 1, day);
+                            } else {
+                                date = new Date(dateStr);
+                            }
                         }
+                        if (isNaN(date.getTime())) return dateStr;
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        if (includeTime) {
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+                        }
+                        return `${year}年${month}月${day}日`;
+                    } catch (e) {
+                        return dateStr;
                     }
-
-                    let match = dateStr.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
-                    if (match) {
-                        const [, year, month, day] = match;
-                        return `${year}年${month.padStart(2, '0')}月${day.padStart(2, '0')}日`;
-                    }
-
-                    return dateStr;
                 }
 
-                // *** 核心修改: 更新渲染逻辑以匹配 'progress' 页面 ***
                 function renderReport(p) {
-                    const createDetailItem = (label, value) => value || value === 0 ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
-                    const createDescriptionItem = (label, value) => value ? `<div class="detail-item value description"><div class="label">${label}</div>${value}</div>` : '';
+                    const createDetailItem = (label, value) => (value || value === 0) ? `<div class="detail-item"><div class="label">${label}</div><div class="value">${value}</div></div>` : '';
+                    const createDescriptionItem = (label, value) => value ? `<div class="detail-item"><div class="label">${label}</div><div class="value description">${value}</div></div>` : '';
 
-                    const driveLink = p['云端硬盘文稿库'];
+                    const driveLink = p['项目文稿库（外链）'];
                     const driveLinkHTML = driveLink ? `<a href="${driveLink}" target="_blank">点此查看</a>` : '无';
 
-                    const header = `<div class="report-header"><div class="header-text"><h1>项目详情报告</h1><h2>${p['项目注册名称']}</h2></div><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
+                    const header = `<div class="report-header"><div class="header-text"><h1>项目详情报告</h1><h2>${p['项目名称']}</h2></div><img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-service-logo.png" class="report-logo"></div>`;
 
                     const projectDetails = `<div class="detail-card">
                     <h3>项目详情</h3>
                     <div class="detail-grid">
-                        ${createDetailItem('内部编号', p['项目编码'])}
-                        ${createDetailItem('合作部门', p['对接部门和组织'])}
-                        ${createDetailItem('状态', `<span class="status-badge status-${p['状态项目']}">${p['状态项目']}</span>`)}
+                        ${createDetailItem('内部编号', p['项目编码（自动）'])}
+                        ${createDetailItem('合作部门', p['对接部门'])}
+                        ${createDetailItem('状态', `<span class="status-badge status-${p['项目状态']}">${p['项目状态']}</span>`)}
                         ${createDetailItem('开始日期', formatDateString(p['项目开始日期']))}
                         ${createDetailItem('结束日期', formatDateString(p['项目结束日期']))}
                         ${createDetailItem('项目负责人', p['项目负责人'])}
@@ -570,45 +648,72 @@
                         ${createDetailItem('全局视频规格', p['全局视频规格'])}
                         ${createDetailItem('全局照片规格', p['全局照片规格'])}
                         ${createDetailItem('本地媒体备份', p['本地媒体备份'])}
-                        ${createDetailItem('云端媒体备份', p['云端媒体备份'])}
-                        ${createDetailItem('云端硬盘文稿库', driveLinkHTML)}
                     </div>
-                    ${createDescriptionItem('项目备注', p['备注'])}
+                    <!-- MODIFIED: Project remarks now in a 3-column grid -->
+                    <div class="detail-grid" style="margin-top: 15px;">
+                        ${createDetailItem('云端媒体备份', p['云端媒体备份'])}
+                        ${createDetailItem('项目文稿库', driveLinkHTML)}
+                        ${createDescriptionItem('项目备注', p['项目备注'])}
+                    </div>
                 </div>`;
 
-                    const productRequests = p.products && p.products.length > 0 ? `<div class="detail-card"><h3>产品请求</h3><div class="detail-card-body" style="padding:0;">
-                    <div class="details-table-wrapper"><table class="details-table"><thead><tr><th>编号</th><th>类别</th><th>名称/描述</th><th>负责人</th><th>状态</th><th>备注</th></tr></thead><tbody>
-                    ${p.products.map(pr => `<tr><td>${pr['产品编码']}</td><td>${pr['分类']}</td><td style="white-space:normal;">${pr['需求描述']}</td><td>${pr['负责人']}</td><td><span class="status-badge status-${pr['状态']}">${pr['状态']}</span></td><td>${pr['备注']}</td></tr>`).join('')}
-                    </tbody></table></div></div></div>` : '';
+                    const productRequests = p.products && p.products.length > 0 ? `<div class="detail-card"><h3>产品请求</h3><div class="details-table-wrapper"><table class="details-table"><thead><tr><th>编号</th><th>类别</th><th>名称/描述</th><th>负责人</th><th>状态</th><th>截止日期</th></tr></thead><tbody>
+                    ${p.products.map(pr => `<tr><td>${pr['产品编码']}</td><td>${pr['分类']}</td><td style="white-space:normal;">${pr['需求描述']}</td><td>${pr['产品负责人']}</td><td><span class="status-badge status-${pr['状态']}">${pr['状态']}</span></td><td>${formatDateString(pr['截止日期'])}</td></tr>`).join('')}
+                    </tbody></table></div></div>` : '';
 
-                    const sessions = p.sessions && p.sessions.length > 0 ? `<div class="detail-card"><h3>归属场次</h3>
+                    const sessions = p.sessions && p.sessions.length > 0 ? `<div class="detail-card"><h3>附属场次</h3>
                     ${p.sessions.map(s => {
                         const startDate = formatDateString(s['场次开始时间'], true);
                         const endDate = formatDateString(s['场次结束时间'], true);
-                        const dateHTML = `起始：${startDate}<br>结束：${endDate}`;
+                        const dateHTML = startDate === '待通知' && endDate === '待通知' ? '待通知' : `开始: ${startDate}<br>结束: ${endDate}`;
+                        const calendarLink = s['关联日程（外链）'] ? `<a href="${s['关联日程（外链）']}" target="_blank">添加到日历</a>` : '无';
 
-                        const setupsHTML = `<h5>机位编组</h5>` + (s.setups && s.setups.length > 0
+                        // --- MODIFIED: Reworked setup table to use rowspan and two equipment columns ---
+                        const setupsHTML = `<h5>机位配置</h5>` + (s.setups && s.setups.length > 0
                             ? `<div class="details-table-wrapper"><table class="details-table">
-                                <thead><tr><th>机位</th><th>描述</th><th>负责人</th><th style="width: 40%;">设备</th><th>备注</th></tr></thead>
+                                <thead><tr><th>机位</th><th>描述</th><th>负责人</th><th>设备名称</th><th>设备编号</th></tr></thead>
                                 <tbody>
-                                    ${s.setups.map(setup => `<tr>
-                                        <td>${setup['机位序号']}</td>
-                                        <td>${setup['机位描述']}</td>
-                                        <td>${setup.staff?.['NAME'] || 'N/A'}</td>
-                                        <td style="white-space:normal;">${setup.equipment?.['型号'] || 'N/A'}</td>
-                                        <td style="white-space:normal;">${setup['备注']}</td>
-                                    </tr>`).join('')}
+                                    ${s.setups.map(setup => {
+                                const numAssets = setup.assets && setup.assets.length > 0 ? setup.assets.length : 1;
+                                const staffName = setup.staff?.['成员姓名'] || '待分配';
+                                const firstAsset = setup.assets && setup.assets[0];
+
+                                let rowsHTML = `<tr>
+                                            <td rowspan="${numAssets}">${setup['机位序号']}</td>
+                                            <td rowspan="${numAssets}">${setup['机位描述']}</td>
+                                            <td rowspan="${numAssets}">${staffName}</td>
+                                            <td style="white-space:normal;">${firstAsset ? firstAsset['资产描述'] : '未指定'}</td>
+                                            <td>${firstAsset ? firstAsset['资产编码（自动）'] : ''}</td>
+                                        </tr>`;
+
+                                if (setup.assets && setup.assets.length > 1) {
+                                    for (let i = 1; i < setup.assets.length; i++) {
+                                        const asset = setup.assets[i];
+                                        rowsHTML += `<tr>
+                                                    <td style="white-space:normal;">${asset['资产描述']}</td>
+                                                    <td>${asset['资产编码（自动）']}</td>
+                                                </tr>`;
+                                    }
+                                }
+                                return rowsHTML;
+                            }).join('')}
                                 </tbody>
                             </table></div>`
-                            : '<div class="no-data">无机位编组信息</div>');
+                            : '<div class="no-data">无机位配置信息</div>');
 
+                        // --- MODIFIED: Session header simplified; sequence number moved to details ---
                         return `<div class="session-card">
-                            <div class="session-header"><h4>${s['场次名称']} (${s['场次序号']}) <span class="status-badge status-${s['场次状态']}">${s['场次状态']}</span></h4></div>
+                            <div class="session-header"><h4>${s['场次名称']} (${s['场次编码（自动）']}) <span class="status-badge status-${s['场次状态']}">${s['场次状态']}</span></h4></div>
                             <div class="session-body">
-                                <div class="detail-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
-                                    ${createDetailItem('场地', s['执行地点'])}
-                                    ${createDetailItem('日期', dateHTML)}
-                                    ${createDescriptionItem('备注', s['场次备注'])}
+                                <div class="detail-grid" style="margin-bottom: 15px;">
+                                    ${createDetailItem('执行地点', s['场次执行地点'])}
+                                    ${createDetailItem('场次负责人', s['场次负责人（关联）'])}
+                                    ${createDetailItem('场次序号', s['场次序号'])}
+                                </div>
+                                <div class="detail-grid">
+                                    ${createDetailItem('时间', dateHTML)}
+                                    ${createDetailItem('日程链接', calendarLink)}
+                                    ${createDescriptionItem('场次备注', s['场次备注'])}
                                 </div>
                                 ${setupsHTML}
                             </div></div>`;
@@ -628,29 +733,35 @@
                     ui.reportContainer.innerHTML = header + '<div class="report-body">' + projectDetails + productRequests + sessions + documentInfo + '</div>';
                 }
 
-                function prepareAndTriggerPrint(project) {
+                function setDocumentTitle(project, isForPrint) {
                     const now = new Date();
                     const pad = (num) => String(num).padStart(2, '0');
-                    const timestamp = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
-                    const filenameTimestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                    const filenameTimestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
 
-                    const timestampElement = ui.reportContainer.querySelector('#render-timestamp');
-                    if (timestampElement) {
-                        timestampElement.textContent = timestamp;
+                    document.title = `项目详情报告_${project['项目编码（自动）']}_${filenameTimestamp}`;
+
+                    if (isForPrint) {
+                        const timestamp = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 ${pad(now.getHours())}时${pad(now.getMinutes())}分${pad(now.getSeconds())}秒`;
+                        const timestampElement = ui.reportContainer.querySelector('#render-timestamp');
+                        if (timestampElement) {
+                            timestampElement.textContent = timestamp;
+                        }
                     }
+                }
 
-                    document.title = `项目详情报告_${project['项目编码']}_${filenameTimestamp}`;
-
+                function prepareAndTriggerPrint() {
+                    if (!currentProject) return;
+                    setDocumentTitle(currentProject, true);
                     window.print();
                 }
 
-                ui.printButton.addEventListener('click', () => { if (currentProject) prepareAndTriggerPrint(currentProject); });
+                ui.printButton.addEventListener('click', prepareAndTriggerPrint);
 
                 ui.backButton.addEventListener('click', () => {
                     if (projectIdFromUrl) {
                         window.location.href = `https://ksvg.com.cn/progress/?open=${projectIdFromUrl}`;
                     } else {
-                        window.history.back();
+                        window.location.href = 'https://ksvg.com.cn/progress/';
                     }
                 });
 
@@ -659,6 +770,19 @@
                         ui.infoBanner.style.display = 'none';
                     });
                 }
+
+                ui.zoomInButton.addEventListener('click', () => {
+                    currentZoom += ZOOM_STEP;
+                    ui.reportContainer.style.transform = `scale(${currentZoom})`;
+                });
+                ui.zoomOutButton.addEventListener('click', () => {
+                    currentZoom = Math.max(0.2, currentZoom - ZOOM_STEP);
+                    ui.reportContainer.style.transform = `scale(${currentZoom})`;
+                });
+                ui.zoomResetButton.addEventListener('click', () => {
+                    currentZoom = 1.0;
+                    ui.reportContainer.style.transform = 'scale(1.0)';
+                });
 
                 loadAndRender();
             });

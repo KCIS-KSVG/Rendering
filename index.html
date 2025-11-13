@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSVG｜文件输出中心</title>
+    <!-- Reusing your existing fonts, icons, and favicon for consistency -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" href="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-logo.png" type="image/png">
+    <style>
+        /* --- Reusing your color variables and base styles --- */
+        :root {
+            --primary-color: #920783;
+            --secondary-color: #007bff;
+            --dark-gray: #1d1d1f;
+            --medium-gray: #424245;
+            --light-gray: #f5f5f7;
+            --text-color: #1d1d1f;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* --- Header --- */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header img {
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            color: var(--dark-gray);
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--medium-gray);
+        }
+
+        /* --- Service Grid --- */
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .service-card {
+            position: relative;
+            display: block;
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            text-decoration: none;
+            color: var(--text-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-card .icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .service-card h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .service-card p {
+            color: var(--medium-gray);
+            font-size: 0.95rem;
+            min-height: 50px; /* Ensures cards have similar height */
+        }
+        
+        .service-card .go-to {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .service-card .go-to i {
+            transition: transform 0.2s;
+        }
+
+        .service-card:hover .go-to i {
+            transform: translateX(5px);
+        }
+
+        /* --- 'Coming Soon' Badge --- */
+        .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #e9ecef;
+            color: #6c757d;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .service-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .service-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+        }
+
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-logo.png" alt="KSVG Logo">
+            <h1>文件输出中心</h1>
+            <p>选择一个服务以继续</p>
+        </header>
+
+        <main>
+            <div class="service-grid">
+                <!-- Card 1: Project Status (This is the service you already built) -->
+                <a href="https://rendering.ksvg.com.cn/project-status/" class="service-card">
+                    <i class="icon ri-file-chart-line"></i>
+                    <h2>项目进展报告</h2>
+                    <p>生成详细的项目状态、场次配置和产品交付物报告，用于打印或归档。</p>
+                    <span class="go-to">进入服务 <i class="ri-arrow-right-line"></i></span>
+                </a>
+
+                <!-- Card 2: Session Checklist (Placeholder for your next service) -->
+                <a href="#" class="service-card disabled">
+                    <span class="badge">即将推出</span>
+                    <i class="icon ri-checkbox-multiple-line"></i>
+                    <h2>场次执行清单</h2>
+                    <p>为特定场次动态生成设备、人员和任务的交互式核对清单。</p>
+                    <span class="go-to">进入服务 <i class="ri-arrow-right-line"></i></span>
+                </a>
+
+                <!-- Card 3: Calendar (Placeholder for your next service) -->
+                <a href="#" class="service-card disabled">
+                    <span class="badge">即将推出</span>
+                    <i class="icon ri-calendar-event-line"></i>
+                    <h2>团队日程日历</h2>
+                    <p>查看所有项目和场次的排期，并支持导出到个人日历应用。</p>
+                    <span class="go-to">进入服务 <i class="ri-arrow-right-line"></i></span>
+                </a>
+            </div>
+        </main>
+    </div>
+    
+    <footer>
+        <p>&copy; 2024 KSVG. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Optional: Prevents clicking on disabled cards
+        document.querySelectorAll('.service-card.disabled').forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+            });
+        });
+    </script>
+</body>
+
+</html>

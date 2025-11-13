@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSVG｜文件输出中心</title>
+    <title>KSVG｜项目报告查询（预览）</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap"
@@ -538,7 +538,7 @@
                     projectIdFromUrl = params.get('id');
 
                     if (!projectIdFromUrl) {
-                        ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请通过主页的详情弹窗访问此页面，例如：<br><code>...?id=PRJ-2601</code></p></div>`;
+                        ui.reportContainer.innerHTML = `<div class="error-container"><i class="ri-error-warning-line"></i><h1>无法生成报告</h1><p>URL中缺少必要的项目ID。请返回查询页面重试，例如：<br><code>...?id=PRJ-2601</code></p></div>`;
                         ui.loadingOverlay.style.display = 'none';
                         ui.printButton.disabled = true;
                         return;
@@ -649,7 +649,6 @@
                         ${createDetailItem('全局照片规格', p['全局照片规格'])}
                         ${createDetailItem('本地媒体备份', p['本地媒体备份'])}
                     </div>
-                    <!-- MODIFIED: Project remarks now in a 3-column grid -->
                     <div class="detail-grid" style="margin-top: 15px;">
                         ${createDetailItem('云端媒体备份', p['云端媒体备份'])}
                         ${createDetailItem('项目文稿库', driveLinkHTML)}
@@ -668,7 +667,6 @@
                         const dateHTML = startDate === '待通知' && endDate === '待通知' ? '待通知' : `开始: ${startDate}<br>结束: ${endDate}`;
                         const calendarLink = s['关联日程（外链）'] ? `<a href="${s['关联日程（外链）']}" target="_blank">添加到日历</a>` : '无';
 
-                        // --- MODIFIED: Reworked setup table to use rowspan and two equipment columns ---
                         const setupsHTML = `<h5>机位配置</h5>` + (s.setups && s.setups.length > 0
                             ? `<div class="details-table-wrapper"><table class="details-table">
                                 <thead><tr><th>机位</th><th>描述</th><th>负责人</th><th>设备名称</th><th>设备编号</th></tr></thead>
@@ -701,7 +699,6 @@
                             </table></div>`
                             : '<div class="no-data">无机位配置信息</div>');
 
-                        // --- MODIFIED: Session header simplified; sequence number moved to details ---
                         return `<div class="session-card">
                             <div class="session-header"><h4>${s['场次名称']} (${s['场次编码（自动）']}) <span class="status-badge status-${s['场次状态']}">${s['场次状态']}</span></h4></div>
                             <div class="session-body">
@@ -757,12 +754,10 @@
 
                 ui.printButton.addEventListener('click', prepareAndTriggerPrint);
 
+                // --- THIS IS THE ONLY MODIFIED PART ---
                 ui.backButton.addEventListener('click', () => {
-                    if (projectIdFromUrl) {
-                        window.location.href = `https://ksvg.com.cn/progress/?open=${projectIdFromUrl}`;
-                    } else {
-                        window.location.href = 'https://ksvg.com.cn/progress/';
-                    }
+                    // This now correctly points to the project lookup page in the same directory.
+                    window.location.href = './';
                 });
 
                 if (ui.closeBannerBtn) {

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSVG｜项目报告查询</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" href="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-logo.png" type="image/png">
+    <style>
+        :root {
+            --primary-color: #920783;
+            --dark-gray: #1d1d1f;
+            --medium-gray: #6e6e73;
+            --light-gray: #f5f5f7;
+            --border-color: #d2d2d7;
+        }
+
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        /* --- Main Card Container --- */
+        .main-container {
+            width: 100%;
+            max-width: 520px;
+            background: #ffffff;
+            border-radius: 1.125rem;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header with Logo and Back Button --- */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e8e8ed;
+        }
+        .card-header img {
+            height: 30px;
+            opacity: 0.8;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem;
+            background-color: #f5f5f7;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--medium-gray);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: background-color 0.2s, border-color 0.2s;
+            cursor: pointer;
+        }
+        .back-button:hover { background-color: #e8e8ed; }
+
+        .card-body { padding: 2.5rem; text-align: center; }
+        .card-body h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .card-body p {
+            color: var(--medium-gray);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        /* --- Search Input & Wrapper --- */
+        #project-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #project-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(146, 7, 131, 0.25);
+        }
+
+        /* --- Autocomplete Suggestions --- */
+        .suggestions-list {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            margin-top: 0.25rem;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #e8e8ed;
+            text-align: left;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover, .suggestion-item.active { background-color: var(--light-gray); }
+        .suggestion-item .name {
+            font-weight: 600;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+        .suggestion-item .id {
+            font-size: 0.875rem;
+            color: var(--medium-gray);
+            display: block;
+            margin-top: 0.125rem;
+        }
+        
+        /* Other styles are unchanged */
+        #step2-confirm { text-align: left; }
+        .details-list { background-color: var(--light-gray); border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+        .details-list dt { font-weight: 600; color: var(--medium-gray); font-size: 0.875rem; margin-bottom: 0.125rem; }
+        .details-list dd { font-size: 1.125rem; margin-left: 0; margin-bottom: 1rem; }
+        .details-list dd:last-child { margin-bottom: 0; }
+        .disclaimer-label { display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.9375rem; margin-bottom: 1.5rem; }
+        #disclaimer-checkbox { margin-top: 0.2rem; flex-shrink: 0; width: 1.125rem; height: 1.125rem; accent-color: var(--primary-color); }
+        .action-button { width: 100%; padding: 1rem; font-size: 1rem; font-weight: 700; background-color: var(--primary-color); color: #fff; border: none; border-radius: 0.75rem; cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+        .action-button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .action-button:not(:disabled):hover { background-color: #7a066d; }
+        .action-button:not(:disabled):active { transform: scale(0.98); }
+        .hidden { display: none; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px); z-index: 2000; display: none; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; opacity: 0; transition: opacity 0.3s ease; }
+        #loading-overlay.visible { display: flex; opacity: 1; }
+        .loader { border: 5px solid #e0e0e0; border-top: 5px solid var(--primary-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .loading-text { font-size: 1rem; font-weight: 600; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @media (max-width: 640px) { body { padding: 0; } .main-container { width: 100vw; min-height: 100vh; border-radius: 0; box-shadow: none; } .card-body { padding: 1.5rem; } .card-header { padding: 0.75rem 1rem; } }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <header class="card-header">
+            <!-- THIS IS THE ONLY LINE THAT HAS BEEN CHANGED -->
+            <a id="back-button" href="https://rendering.ksvg.com.cn" class="back-button"><i class="ri-arrow-left-s-line"></i> 主菜单</a>
+            <img src="https://raw.githubusercontent.com/KCIS-KSVG/Data/main/embed/ksvg-logo.png" alt="KSVG Logo">
+        </header>
+        <div class="card-body">
+            <div id="step1-lookup">
+                <h1>项目报告查询</h1>
+                <p>请输入项目名称或内部编号进行搜索。</p>
+                <div class="search-wrapper">
+                    <input type="text" id="project-input" placeholder="点击或输入以搜索..." autocomplete="off">
+                </div>
+                <button id="step1-next-button" class="action-button" style="margin-top:1.25rem;" disabled>下一步</button>
+            </div>
+            <div id="step2-confirm" class="hidden">
+                <h1>信息核对</h1>
+                <p>请确认以下项目信息是否正确。</p>
+                <div class="details-list">
+                    <dl>
+                        <dt>项目名称</dt><dd id="confirm-name"></dd>
+                        <dt>内部编号</dt><dd id="confirm-id"></dd>
+                        <dt>项目负责人</dt><dd id="confirm-manager"></dd>
+                    </dl>
+                </div>
+                <label for="disclaimer-checkbox" class="disclaimer-label">
+                    <input type="checkbox" id="disclaimer-checkbox">
+                    <span>我已确认信息无误，并了解报告内容仅供参考。</span>
+                </label>
+                <button id="step2-next-button" class="action-button" disabled>生成报告</button>
+            </div>
+        </div>
+    </div>
+    <div class="suggestions-list hidden" id="suggestions-list"></div>
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <p class="loading-text">正在生成报告...</p>
+    </div>
+
+    <script>
+        // The JavaScript does not need any changes.
+        // It correctly handles the back button's two states (go to URL vs. go to previous step).
+        document.addEventListener('DOMContentLoaded', () => {
+            const PROJECTS_URL = 'https://raw.githubusercontent.com/KCIS-KSVG/Data/main/progress/01.csv';
+            const ui = {
+                step1: document.getElementById('step1-lookup'),
+                step2: document.getElementById('step2-confirm'),
+                backButton: document.getElementById('back-button'),
+                input: document.getElementById('project-input'),
+                suggestionsList: document.getElementById('suggestions-list'),
+                step1NextBtn: document.getElementById('step1-next-button'),
+                step2NextBtn: document.getElementById('step2-next-button'),
+                disclaimerCheckbox: document.getElementById('disclaimer-checkbox'),
+                loadingOverlay: document.getElementById('loading-overlay'),
+                confirm: { name: document.getElementById('confirm-name'), id: document.getElementById('confirm-id'), manager: document.getElementById('confirm-manager') }
+            };
+
+            let allProjects = [], selectedProject = null, activeSuggestionIndex = -1;
+
+            const parseCSV = (text) => {
+                if (!text) return [];
+                const lines = text.trim().replace(/^\uFEFF/, "").split(/\r?\n/);
+                if (lines.length < 2) return [];
+                const headers = lines[0].split(',').map(h => h.trim());
+                return lines.slice(1).map(line => {
+                    if (!line.trim()) return null;
+                    const values = line.split(',');
+                    return headers.reduce((obj, header, index) => {
+                        obj[header] = (values[index] || '').trim();
+                        return obj;
+                    }, {});
+                }).filter(p => p && p['项目编码（自动）']);
+            };
+
+            const fetchProjects = async () => {
+                try {
+                    const res = await fetch(`${PROJECTS_URL}?v=${new Date().getTime()}`);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    allProjects = parseCSV(await res.text());
+                } catch (error) {
+                    ui.input.placeholder = "无法加载项目数据，请重试";
+                    ui.input.disabled = true;
+                }
+            };
+
+            const positionSuggestionsList = () => {
+                const rect = ui.input.getBoundingClientRect();
+                ui.suggestionsList.style.left = `${rect.left}px`;
+                ui.suggestionsList.style.top = `${rect.bottom + 4}px`;
+                ui.suggestionsList.style.width = `${rect.width}px`;
+            };
+
+            const showSuggestions = () => {
+                const query = ui.input.value.toLowerCase().trim();
+                const matches = query ? allProjects.filter(p =>
+                    p['项目名称'].toLowerCase().includes(query) ||
+                    p['项目编码（自动）'].toLowerCase().includes(query)
+                ) : [...allProjects];
+
+                ui.suggestionsList.innerHTML = '';
+                if (matches.length === 0) { hideSuggestions(); return; }
+
+                matches.slice(0, 10).forEach(project => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.innerHTML = `<span class="name">${project['项目名称']}</span><span class="id">${project['项目编码（自动）']}</span>`;
+                    item.addEventListener('mousedown', (e) => { e.preventDefault(); selectProject(project); });
+                    ui.suggestionsList.appendChild(item);
+                });
+                
+                activeSuggestionIndex = -1;
+                ui.suggestionsList.classList.remove('hidden');
+                positionSuggestionsList();
+            };
+
+            const hideSuggestions = () => ui.suggestionsList.classList.add('hidden');
+
+            const selectProject = (project) => {
+                selectedProject = project;
+                ui.input.value = `${project['项目名称']} (${project['项目编码（自动）']})`;
+                ui.step1NextBtn.disabled = false;
+                hideSuggestions();
+            };
+            
+            const handleKeyDown = (e) => {
+                const items = ui.suggestionsList.querySelectorAll('.suggestion-item');
+                if (ui.suggestionsList.classList.contains('hidden') || items.length === 0) return;
+                
+                const updateActive = () => {
+                    items.forEach(item => item.classList.remove('active'));
+                    if (activeSuggestionIndex > -1) items[activeSuggestionIndex].classList.add('active');
+                };
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
+                    updateActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
+                    updateActive();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const target = activeSuggestionIndex > -1 ? items[activeSuggestionIndex] : items[0];
+                    if (target) target.dispatchEvent(new Event('mousedown'));
+                } else if (e.key === 'Escape') { hideSuggestions(); }
+            };
+
+            const showConfirmationStep = () => {
+                if (!selectedProject) return;
+                ui.confirm.name.textContent = selectedProject['项目名称'];
+                ui.confirm.id.textContent = selectedProject['项目编码（自动）'];
+                ui.confirm.manager.textContent = selectedProject['项目负责人'] || '未指定';
+                ui.backButton.innerHTML = `<i class="ri-arrow-left-s-line"></i> 上一步`;
+                ui.step1.classList.add('hidden');
+                ui.step2.classList.remove('hidden');
+            };
+            
+            const showLookupStep = () => {
+                ui.backButton.innerHTML = `<i class="ri-arrow-left-s-line"></i> 主菜单`;
+                ui.step2.classList.add('hidden');
+                ui.step1.classList.remove('hidden');
+            };
+
+            const generateReport = () => {
+                if (!selectedProject || !ui.disclaimerCheckbox.checked) return;
+                ui.loadingOverlay.classList.add('visible');
+                setTimeout(() => {
+                    window.location.href = `report.html?id=${selectedProject['项目编码（自动）']}`;
+                }, 800);
+            };
+
+            const handleBackButtonClick = (e) => {
+                if (!ui.step2.classList.contains('hidden')) {
+                    e.preventDefault();
+                    showLookupStep();
+                }
+            };
+
+            const init = async () => {
+                await fetchProjects();
+                ui.input.addEventListener('focus', showSuggestions);
+                ui.input.addEventListener('input', showSuggestions);
+                ui.input.addEventListener('keydown', handleKeyDown);
+                ui.input.addEventListener('blur', () => setTimeout(hideSuggestions, 150));
+                ui.step1NextBtn.addEventListener('click', showConfirmationStep);
+                ui.disclaimerCheckbox.addEventListener('change', () => ui.step2NextBtn.disabled = !ui.disclaimerCheckbox.checked);
+                ui.step2NextBtn.addEventListener('click', generateReport);
+                ui.backButton.addEventListener('click', handleBackButtonClick);
+                window.addEventListener('resize', positionSuggestionsList);
+            };
+
+            init();
+        });
+    </script>
+</body>
+</html>
